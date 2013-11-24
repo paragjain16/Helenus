@@ -154,7 +154,7 @@ public class Node {
 			serverSocket = new ServerSocket(3456);
 			DSLogger.logAdmin("StartServer","listenToCommands","Listening to commands");
 			while(true){	
-				executor.execute(new HandleCommand(serverSocket.accept(), this.aliveMembers, this.lockUpdateMember,this.operationQueue,this.resultQueue, this.itself));
+				executor.execute(new HandleCommands(serverSocket.accept(), this.aliveMembers, this.lockUpdateMember,this.operationQueue,this.resultQueue, this.itself));
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
