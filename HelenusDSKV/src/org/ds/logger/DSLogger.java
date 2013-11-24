@@ -21,4 +21,9 @@ public class DSLogger {
 				 log.info(key+" : "+value);
 			 }
 		 }
+		 static Logger fe = Logger.getLogger("fe");
+		 
+		 public static void logFE(String className, String methodName, String msg){
+			 fe.debug(className+":"+methodName+"~"+msg);
+		 }
 }
