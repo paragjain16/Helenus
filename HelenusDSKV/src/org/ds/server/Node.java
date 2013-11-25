@@ -45,7 +45,6 @@ public class Node {
 	private final ScheduledExecutorService scheduler;
 
 	private ScheduledFuture<?> gossip = null;
-
 	public Node(int port, String id) {
 		aliveMembers = new HashMap<String, Member>();
 		deadMembers = new HashMap<String, Member>();

@@ -62,6 +62,8 @@ public class HandleCommands implements Runnable{
 			DSLogger.logAdmin(this.getClass().getName(), "run","Executing command:"+cmd);
 			/*
 			 * Handle different commands
+			 * 
+			 * 
 			 * */
 			//sent by new node wanting to join network
 			if(cmd.equals("joinMe")){
