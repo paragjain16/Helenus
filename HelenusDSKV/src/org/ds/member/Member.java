@@ -28,7 +28,7 @@ public class Member implements Serializable{
 	public Member(InetAddress address, String id, int port){
 		this.address = address;
 		this.heartBeat = 0;
-		this.identifier = Hash.doHash(id+"#"+address.getHostAddress())+"";
+		this.identifier = Hash.doHash(id+"#"+address.getHostAddress()+port)+"";
 		DSLogger.logAdmin("Member", "Member", "New Member created with id "+identifier);
 		this.timeStamp = new Date().getTime();
 		this.port = port;
