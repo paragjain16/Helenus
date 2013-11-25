@@ -46,6 +46,12 @@ public class KVStoreOperation {
 		DISPLAY
 	}
 	
+	public enum MapNumber{
+		PRIMARY,
+	    BACKUP1,
+	    BACKUP2
+	}
+	
 	
 	public Integer getKey() {
 		return key;

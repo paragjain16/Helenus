@@ -156,6 +156,7 @@ public class HandleCommands implements Runnable{
 				Integer key= (Integer)argList.get(1);
 				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to hold the actual key-value.
 				Object value=(Object)argList.get(2);
+				Integer mapNumber=(Integer)argList.get(3);
 				
 				DSLogger.logAdmin("HandleCommand", "run","Entered put on node "+itself.getIdentifier());
 				Integer nextNodeId = -1;
@@ -164,6 +165,7 @@ public class HandleCommands implements Runnable{
 				}else{
 					nextNodeId = sortedAliveMembers.higherKey(hashedKey)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(hashedKey);
 				}
+				
 				
 				if(nextNodeId.toString().equals(itself.getIdentifier())){
 					DSLogger.logAdmin("HandleCommand", "run","In local key-value store, putting up key:"+key+" and value:"+value);
