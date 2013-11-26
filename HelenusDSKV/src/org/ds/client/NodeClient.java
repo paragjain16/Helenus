@@ -16,6 +16,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.ds.hash.Hash;
 import org.ds.logger.DSLogger;
+import org.ds.networkConf.XmlParseUtility;
 import org.ds.socket.DSocket;
 
 /**
@@ -24,8 +25,9 @@ import org.ds.socket.DSocket;
  *         update(key, new_value), and delete(key)
  */
 public class NodeClient {
-	private static final int PORT_NUMBER = 3456;
-
+    private String contactMachineIP;
+    private int contactMachinePort;
+    
 	/**
 	 * @param args
 	 */
@@ -67,6 +69,9 @@ public class NodeClient {
 		}
 
 		NodeClient client = new NodeClient();
+		String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
+		client.contactMachineIP = contactMachineAddr.split(":")[0];
+		client.contactMachinePort = Integer.parseInt(contactMachineAddr.split(":")[1]);
 		if (cmd.hasOption("l")) {
 			// Invoke the insert method on NodeClient
 		
@@ -227,12 +232,11 @@ public class NodeClient {
 		DSLogger.logAdmin("NodeClient", "invokeCommand", "Entering");
 		DSLogger.logAdmin("NodeClient", "invokeCommand", objList.get(0).toString());
 		try {
-			DSocket server = new DSocket("127.0.0.1", PORT_NUMBER);
+		
+			DSocket server = new DSocket(contactMachineIP, contactMachinePort);
 			server.writeObjectList(objList);
 			Object output=null;
-			//if (waitForOutputFromServer) {
-				output = server.readObject();				
-			//}
+			output = server.readObject();				
 			server.close();
 			DSLogger.logAdmin("NodeClient", "invokeCommand", "Received object "+output);
 			return output;
