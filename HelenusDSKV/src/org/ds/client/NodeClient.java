@@ -30,7 +30,7 @@ public class NodeClient {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Integer key = null;
+		String key = null;
 		String value = null;
 		Options options = new Options();
 
@@ -57,27 +57,9 @@ public class NodeClient {
 		}
 
 		if (cmd.hasOption("k")) {
-		    String enteredKey=cmd.getOptionValue("k");
-		    // Check if a numeric key is entered
-			if(isNumeric(enteredKey)){
-				try{
-					key=Integer.parseInt(enteredKey);
-					if(key<0 || key > 1000000){
-						throw new NumberFormatException("Key not in range 0 - 1000000");
-					}
-				}catch(NumberFormatException nfe){
-					DSLogger.logAdmin("NodeClient", "main", nfe.toString());
-					System.out.println("Key is out of range 0 - 1000000");
-					System.exit(0);
-				}
-				Integer hashedKey=Hash.doHash(enteredKey);
-				System.out.println("Entered key:"+enteredKey+" is hashed to "+hashedKey);
-			}
-			else{
-				System.out.println("Please enter a numeric key!!");
-				return;
-			}
-			
+		    key=cmd.getOptionValue("k");
+		    Integer hashedKey=Hash.doHash(key);
+			System.out.println("Entered key:"+key+" is hashed to "+hashedKey);				
 		}
 
 		if (cmd.hasOption("v")) {
@@ -126,7 +108,7 @@ public class NodeClient {
 
 		else if (cmd.hasOption("s")) {
 			// Invoke the update method on NodeClient
-			Map<Integer,Object> objMap=(Map<Integer,Object>)client.show();
+			Map<String,Object> objMap=(Map<String,Object>)client.show();
 			DSLogger.logAdmin("NodeClient", "main", "Received object in main "+objMap);
 			String id=(String) objMap.get(-1);
 			objMap.remove(-1);
@@ -141,7 +123,7 @@ public class NodeClient {
 			String dummyValue = "";
 			for(int i=0; i<1000; i++){
 				randomKey[i] = new Random().nextInt(1000001);
-				client.insert(randomKey[i], dummyValue);
+				//client.insert(randomKey[i], dummyValue);
 			}
 			File file =new File("/tmp/mp3readingslookup.csv");
 			FileWriter fw = null;
@@ -158,7 +140,7 @@ public class NodeClient {
 				fw.append(rndKey+"");
 				fw.append(",");
 				long startTime =System.currentTimeMillis();
-				client.lookup(rndKey);
+				//client.lookup(rndKey);
 				long endTime = System.currentTimeMillis();
 				fw.append(endTime-startTime+"");
 				fw.append("\n");	
@@ -172,23 +154,23 @@ public class NodeClient {
 		
 		else if(cmd.hasOption("tl")){
 			int rndKey = new Random().nextInt(1000000);
-			client.insert(rndKey, "");
+			//client.insert(rndKey, "");
 			System.out.println("Inserting Key "+rndKey+" hashed to "+Hash.doHash(rndKey+""));
 			long startTime=System.currentTimeMillis();
-			Object objValue=client.lookup(rndKey);
+			//Object objValue=client.lookup(rndKey);
 			long endTime = System.currentTimeMillis();
 			System.out.println(endTime-startTime);
-			System.out.println(objValue);
-			client.delete(rndKey);
+			//System.out.println(objValue);
+			//client.delete(rndKey);
 		}
 		else if(cmd.hasOption("ti")){
 			int rndKey = new Random().nextInt(1000000);
 			System.out.println("Inserting Key "+rndKey+" hashed to "+Hash.doHash(rndKey+""));	
 			long startTime=System.currentTimeMillis();
-			client.insert(rndKey, "");
+			//client.insert(rndKey, "");
 			long endTime = System.currentTimeMillis();
 			System.out.println(endTime-startTime);
-			client.delete(rndKey);
+			//client.delete(rndKey);
 		}
 
 	}
@@ -205,14 +187,14 @@ public class NodeClient {
 		return invokeCommand(objList, true);
 	}
 
-	public Object lookup(Integer key) {
+	public Object lookup(String key) {
 		List<Object> objList = new ArrayList<Object>();
 		objList.add(new String("get"));
 		objList.add(key);		
 		return invokeCommand(objList, true);
 	}
 
-	public void insert(Integer key, String value) {
+	public void insert(String key, String value) {
 		List<Object> objList = new ArrayList<Object>();
 		objList.add(new String("put"));
 		objList.add(key);
@@ -220,7 +202,7 @@ public class NodeClient {
 		invokeCommand(objList, true);
 	}
 
-	public void update(Integer key, String new_value) {
+	public void update(String key, String new_value) {
 		List<Object> objList = new ArrayList<Object>();
 		objList.add(new String("update"));
 		objList.add(key);
@@ -228,7 +210,7 @@ public class NodeClient {
 		invokeCommand(objList, true);
 	}
 
-	public void delete(Integer key) {
+	public void delete(String key) {
 		List<Object> objList = new ArrayList<Object>();
 		objList.add(new String("delete"));
 		objList.add(key);
@@ -262,12 +244,5 @@ public class NodeClient {
        return null;
 	}
 	
-	public static boolean isNumeric(String str)
-	{
-	    for (char ch : str.toCharArray())
-	    {
-	        if (!Character.isDigit(ch)) return false;
-	    }
-	    return true;
-	}
+	
 }

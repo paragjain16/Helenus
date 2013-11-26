@@ -23,10 +23,10 @@ public class KeyValueStore implements Runnable {
 	BlockingQueue<Object> resultQueue = null;
 	Member itself;
 	BlockingQueue<KVStoreOperation> oper = null;
-	private Map<Integer, Object> chosenKeyValueStoreMap = new HashMap<Integer, Object>();
-	private Map<Integer, Object> primaryKeyValueStoreMap = new HashMap<Integer, Object>();
-	private Map<Integer, Object> firstBackupKeyValueStore = new HashMap<Integer, Object>();
-	private Map<Integer, Object> secondBackupKeyValueStore = new HashMap<Integer, Object>();
+	private Map<String, Object> chosenKeyValueStoreMap =null;
+	private Map<String, Object> primaryKeyValueStoreMap = new HashMap<String, Object>();
+	private Map<String, Object> firstBackupKeyValueStore = new HashMap<String, Object>();
+	private Map<String, Object> secondBackupKeyValueStore = new HashMap<String, Object>();
 	
 	public KeyValueStore(BlockingQueue<KVStoreOperation> operationQueue, BlockingQueue<Object> resultQueue, Member itself) {
 		super();
@@ -101,16 +101,16 @@ public class KeyValueStore implements Runnable {
 					"Partitioning key value store until key:" + oper.getKey());
 			// Sort the keyvalue store and return the set until the key of the
 			// new node.
-			Integer minNodeKey = oper.getKey();
+			Integer minNodeKey = Hash.doHash(oper.getKey());
 			Integer maxNodeKey = Integer.parseInt(itself.getIdentifier());
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Partitioning key value store in range :" + minNodeKey+" - "+maxNodeKey);
-			Map<Integer, Object> newMap = new HashMap<Integer, Object>();
-			Set<Integer> origKeys = new HashSet<Integer>(chosenKeyValueStoreMap.keySet());
+			Map<String, Object> newMap = new HashMap<String, Object>();
+			Set<String> origKeys = new HashSet<String>(chosenKeyValueStoreMap.keySet());
 			DSLogger.logAdmin("KeyValueStore", "performOperation","Original keyset of size:" + origKeys.size());
 			//Collections.sort(new ArrayList<Integer>(origKeys));
 			Integer hashedKey=null;
-			for (Integer key : origKeys) {
+			for (String key : origKeys) {
 				hashedKey=Hash.doHash(key.toString());//Use hashedKey for partitioning the keyset. 
 				if(minNodeKey > maxNodeKey){
 					if( (hashedKey > minNodeKey && hashedKey<= 255) 
@@ -149,7 +149,7 @@ public class KeyValueStore implements Runnable {
 					"Display local hashmap of size:" + chosenKeyValueStoreMap.size());
 			try {
 				Map<Integer,Object> displayMap=new HashMap<Integer,Object>();
-				displayMap.putAll(chosenKeyValueStoreMap);
+			//	displayMap.putAll(chosenKeyValueStoreMap);
 				resultQueue.put(displayMap);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -159,7 +159,7 @@ public class KeyValueStore implements Runnable {
 		case MERGE:
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Merging map received from previous node");
-			Map<Integer,Object> mapToBeMerged=oper.getMapToBeMerged();
+			Map<String,Object> mapToBeMerged=oper.getMapToBeMerged();
 			chosenKeyValueStoreMap.putAll(mapToBeMerged);
 			try {
 				resultQueue.put("ack");
@@ -173,7 +173,7 @@ public class KeyValueStore implements Runnable {
 			try{
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Leave command received");
-			Map<Integer,Object> mapToBeSent=new HashMap<Integer,Object>();
+			Map<String,Object> mapToBeSent=new HashMap<String,Object>();
 			mapToBeSent.putAll(chosenKeyValueStoreMap);
 			resultQueue.put(mapToBeSent);
 		} catch (InterruptedException e) {
