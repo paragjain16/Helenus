@@ -23,8 +23,11 @@ public class KeyValueStore implements Runnable {
 	BlockingQueue<Object> resultQueue = null;
 	Member itself;
 	BlockingQueue<KVStoreOperation> oper = null;
-	private Map<Integer, Object> keyValueStore = new HashMap<Integer, Object>();
-
+	private Map<String, Object> chosenKeyValueStoreMap =null;
+	private Map<String, Object> primaryKeyValueStoreMap = new HashMap<String, Object>();
+	private Map<String, Object> firstBackupKeyValueStore = new HashMap<String, Object>();
+	private Map<String, Object> secondBackupKeyValueStore = new HashMap<String, Object>();
+	
 	public KeyValueStore(BlockingQueue<KVStoreOperation> operationQueue, BlockingQueue<Object> resultQueue, Member itself) {
 		super();
 		this.operationQueue = operationQueue;
@@ -53,12 +56,13 @@ public class KeyValueStore implements Runnable {
 	}
 
 	private void performOperation(KVStoreOperation oper) {
+		//Select a keystore to operate on based on the hash of the key.
 		DSLogger.logAdmin("KeyValueStore", "performOperation", "Entered performOperation");
-		DSLogger.logAdmin("KeyValueStore", "performOperation", keyValueStore.toString());
+		DSLogger.logAdmin("KeyValueStore", "performOperation", chosenKeyValueStoreMap.toString());
 		Object retValue = null;
 		switch (oper.getOperType()) {
 		case GET:
-			retValue = keyValueStore.get(oper.getKey());
+			retValue = chosenKeyValueStoreMap.get(oper.getKey());
 			DSLogger.logAdmin("KeyValueStore", "performOperation", "got value:"
 					+ retValue);
 			try {
@@ -76,20 +80,20 @@ public class KeyValueStore implements Runnable {
 					"performOperation",
 					"putting key:" + oper.getKey() + "and value:"
 							+ oper.getValue());
-			keyValueStore.put(oper.getKey(), oper.getValue());
+			chosenKeyValueStoreMap.put(oper.getKey(), oper.getValue());
 			break;
 
 		case UPDATE:
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"updating for  key:" + oper.getKey() + "and new value:"
 							+ oper.getValue());
-			keyValueStore.put(oper.getKey(), oper.getValue());
+			chosenKeyValueStoreMap.put(oper.getKey(), oper.getValue());
 			break;
 
 		case DELETE:
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Deleting object for  key:" + oper.getKey());
-			keyValueStore.remove(oper.getKey());
+			chosenKeyValueStoreMap.remove(oper.getKey());
 			break;
 
 		case PARTITION:
@@ -97,38 +101,38 @@ public class KeyValueStore implements Runnable {
 					"Partitioning key value store until key:" + oper.getKey());
 			// Sort the keyvalue store and return the set until the key of the
 			// new node.
-			Integer minNodeKey = oper.getKey();
+			Integer minNodeKey = Hash.doHash(oper.getKey());
 			Integer maxNodeKey = Integer.parseInt(itself.getIdentifier());
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Partitioning key value store in range :" + minNodeKey+" - "+maxNodeKey);
-			Map<Integer, Object> newMap = new HashMap<Integer, Object>();
-			Set<Integer> origKeys = new HashSet<Integer>(keyValueStore.keySet());
+			Map<String, Object> newMap = new HashMap<String, Object>();
+			Set<String> origKeys = new HashSet<String>(chosenKeyValueStoreMap.keySet());
 			DSLogger.logAdmin("KeyValueStore", "performOperation","Original keyset of size:" + origKeys.size());
 			//Collections.sort(new ArrayList<Integer>(origKeys));
 			Integer hashedKey=null;
-			for (Integer key : origKeys) {
+			for (String key : origKeys) {
 				hashedKey=Hash.doHash(key.toString());//Use hashedKey for partitioning the keyset. 
 				if(minNodeKey > maxNodeKey){
 					if( (hashedKey > minNodeKey && hashedKey<= 255) 
 							|| (hashedKey>=0 && hashedKey <=maxNodeKey)){
 						if(minNodeKey==0 && hashedKey==0){ // Special handling for node 0 and key 0.
-							Object value = keyValueStore.get(key);
-							keyValueStore.remove(key);
+							Object value = chosenKeyValueStoreMap.get(key);
+							chosenKeyValueStoreMap.remove(key);
 							newMap.put(key, value);
 						}else{
 							continue;
 						}
 					}else{
-						Object value = keyValueStore.get(key);
-						keyValueStore.remove(key);
+						Object value = chosenKeyValueStoreMap.get(key);
+						chosenKeyValueStoreMap.remove(key);
 						newMap.put(key, value);
 					}
 				}else{
 					if(hashedKey > minNodeKey && hashedKey <= maxNodeKey){
 						continue;
 					}else{
-						Object value = keyValueStore.get(key);
-						keyValueStore.remove(key);
+						Object value = chosenKeyValueStoreMap.get(key);
+						chosenKeyValueStoreMap.remove(key);
 						newMap.put(key, value);
 					}
 				}				
@@ -142,10 +146,10 @@ public class KeyValueStore implements Runnable {
 			break;
 		case DISPLAY:
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
-					"Display local hashmap of size:" + keyValueStore.size());
+					"Display local hashmap of size:" + chosenKeyValueStoreMap.size());
 			try {
 				Map<Integer,Object> displayMap=new HashMap<Integer,Object>();
-				displayMap.putAll(keyValueStore);
+			//	displayMap.putAll(chosenKeyValueStoreMap);
 				resultQueue.put(displayMap);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -155,8 +159,8 @@ public class KeyValueStore implements Runnable {
 		case MERGE:
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Merging map received from previous node");
-			Map<Integer,Object> mapToBeMerged=oper.getMapToBeMerged();
-			keyValueStore.putAll(mapToBeMerged);
+			Map<String,Object> mapToBeMerged=oper.getMapToBeMerged();
+			chosenKeyValueStoreMap.putAll(mapToBeMerged);
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
@@ -169,8 +173,8 @@ public class KeyValueStore implements Runnable {
 			try{
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Leave command received");
-			Map<Integer,Object> mapToBeSent=new HashMap<Integer,Object>();
-			mapToBeSent.putAll(keyValueStore);
+			Map<String,Object> mapToBeSent=new HashMap<String,Object>();
+			mapToBeSent.putAll(chosenKeyValueStoreMap);
 			resultQueue.put(mapToBeSent);
 		} catch (InterruptedException e) {
 			e.printStackTrace();

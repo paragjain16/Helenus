@@ -93,7 +93,7 @@ public class HandleCommands implements Runnable{
 				Integer nextNodeId = sortedAliveMembers.higherKey(itselfId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(itselfId);
 				
 				DSLogger.logAdmin("Node", "listenToCommands", "Contacting key value store locally to get keys");
-				KVStoreOperation operation=new KVStoreOperation(-1, KVStoreOperation.OperationType.LEAVE);
+				KVStoreOperation operation=new KVStoreOperation("-1", KVStoreOperation.OperationType.LEAVE,KVStoreOperation.MapType.PRIMARY);
 				operationQueue.put(operation);
 				HashMap<Integer, Object> keyValueStore = (HashMap<Integer, Object>)resultQueue.take();
 				
@@ -111,7 +111,7 @@ public class HandleCommands implements Runnable{
 			}
 			//for getting a key
 			else if(cmd.equals("get")){
-				Integer key= (Integer)argList.get(1);
+				String key= (String)argList.get(1);
 				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which holds the actual key-value.
 				DSLogger.logAdmin("HandleCommand", "run","Determining location for hashed key:"+hashedKey+"computed by node "+itself.getIdentifier());
 				
@@ -131,7 +131,7 @@ public class HandleCommands implements Runnable{
 				if(nextNodeId.toString().equals(itself.getIdentifier())){
 					DSLogger.logAdmin("HandleCommand", "run","Retrieving value for key:"+key+" from local key value store");
 					//System.out.println("Retrieving value for key:"+key+" from local key value store");
-					KVStoreOperation operation=new KVStoreOperation(key, KVStoreOperation.OperationType.GET);
+					KVStoreOperation operation=new KVStoreOperation(key, KVStoreOperation.OperationType.GET,KVStoreOperation.MapType.PRIMARY);
 					operationQueue.put(operation);
 					value=resultQueue.take();
 				}
@@ -155,9 +155,10 @@ public class HandleCommands implements Runnable{
 			}
 			//for putting a key
 			else if(cmd.equals("put")){
-				Integer key= (Integer)argList.get(1);
+				String key= (String)argList.get(1);
 				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to hold the actual key-value.
 				Object value=(Object)argList.get(2);
+				Integer mapNumber=(Integer)argList.get(3);
 				
 				DSLogger.logAdmin("HandleCommand", "run","Entered put on node "+itself.getIdentifier());
 				Integer nextNodeId = -1;
@@ -167,9 +168,10 @@ public class HandleCommands implements Runnable{
 					nextNodeId = sortedAliveMembers.higherKey(hashedKey)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(hashedKey);
 				}
 				
+				
 				if(nextNodeId.toString().equals(itself.getIdentifier())){
 					DSLogger.logAdmin("HandleCommand", "run","In local key-value store, putting up key:"+key+" and value:"+value);
-					KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.PUT);
+					KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.PUT,KVStoreOperation.MapType.PRIMARY);
 					operationQueue.put(operation);	
 				}else{
 					DSLogger.logAdmin("HandleCommand", "run","Contacting "+nextNodeId+" for putting key:"+key+" and value:"+value+" since hash of the key is :"+hashedKey);
@@ -184,7 +186,7 @@ public class HandleCommands implements Runnable{
 			}
 			//for updating a key
 			else if(cmd.equals("update")){
-				Integer key= (Integer)argList.get(1);
+				String key= (String)argList.get(1);
 				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to update the actual key-value.
 				Object value=(Object)argList.get(2);
 
@@ -199,7 +201,7 @@ public class HandleCommands implements Runnable{
 				
 				if(nextNodeId.toString().equals(itself.getIdentifier())){
 					DSLogger.logAdmin("HandleCommand", "run","Updating in local key-value store for key:"+key+" and new value:"+value);
-					KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.UPDATE);
+					KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.UPDATE,KVStoreOperation.MapType.PRIMARY);
 					operationQueue.put(operation);			
 				}
 				else{
@@ -213,7 +215,7 @@ public class HandleCommands implements Runnable{
 				}
 			}
 			else if(cmd.equals("delete")){
-				Integer key= (Integer)argList.get(1);	
+				String key= (String)argList.get(1);	
 				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to delete the actual key-value.
 				DSLogger.logAdmin("HandleCommand", "run","Entered delete operation on node "+itself.getIdentifier());
 
@@ -227,7 +229,7 @@ public class HandleCommands implements Runnable{
 				DSLogger.logAdmin("HandleCommand", "run","Deleting object for key "+key+" in node number: "+nextNodeId);
 				if(nextNodeId.toString().equals(itself.getIdentifier())){
 					DSLogger.logAdmin("HandleCommand", "run","Deleting object in local key store for key:"+key);
-					KVStoreOperation operation=new KVStoreOperation(key, KVStoreOperation.OperationType.DELETE);
+					KVStoreOperation operation=new KVStoreOperation(key, KVStoreOperation.OperationType.DELETE,KVStoreOperation.MapType.PRIMARY);
 					operationQueue.put(operation);				
 				}
 				else{
@@ -244,7 +246,7 @@ public class HandleCommands implements Runnable{
 			else if(cmd.equals("partition")){
 				Member newMember = (Member)argList.get(1);
 				Integer newMemberId = Integer.parseInt(newMember.getIdentifier());
-				KVStoreOperation operation=new KVStoreOperation(newMemberId, KVStoreOperation.OperationType.PARTITION);
+				KVStoreOperation operation=new KVStoreOperation(newMemberId.toString(), KVStoreOperation.OperationType.PARTITION,KVStoreOperation.MapType.PRIMARY);
 				operationQueue.put(operation);
 				Object partitionedMap = resultQueue.take();
 				DSocket sendMerge = new DSocket(newMember.getAddress().getHostAddress(), newMember.getPort());
@@ -258,9 +260,9 @@ public class HandleCommands implements Runnable{
 			}
 			// tells this node to merge the received key list to its key space
 			else if(cmd.equals("merge")){
-				HashMap<Integer, Object> recievedKeys = (HashMap<Integer, Object>)argList.get(1);
+				HashMap<String, Object> recievedKeys = (HashMap<String, Object>)argList.get(1);
 				DSLogger.logAdmin("HandleCommand", "run","In merge request");
-				KVStoreOperation operation=new KVStoreOperation(recievedKeys, KVStoreOperation.OperationType.MERGE);
+				KVStoreOperation operation=new KVStoreOperation(recievedKeys, KVStoreOperation.OperationType.MERGE,KVStoreOperation.MapType.PRIMARY);
 				operationQueue.put(operation);
 				DSLogger.logAdmin("HandleCommand", "run","In merge request waiting for ack");
 				String ack = (String)resultQueue.take();
@@ -270,7 +272,7 @@ public class HandleCommands implements Runnable{
 			//for showing the key space on console
 			else if(cmd.equals("display")){
 				DSLogger.logAdmin("HandleCommand", "run","Retrieving local hashmap for display");
-				KVStoreOperation operation=new KVStoreOperation(-1, KVStoreOperation.OperationType.DISPLAY);
+				KVStoreOperation operation=new KVStoreOperation("-1", KVStoreOperation.OperationType.DISPLAY,KVStoreOperation.MapType.PRIMARY);
 				operationQueue.put(operation);
 				Object value=resultQueue.take();
 				DSLogger.logAdmin("HandleCommand", "run", "Display Map received in Handle Command");
