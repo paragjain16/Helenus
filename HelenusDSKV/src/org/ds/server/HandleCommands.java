@@ -42,7 +42,7 @@ public class HandleCommands implements Runnable{
 			this.resultQueue=resultQueue;
 			this.itself = itself;
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
+			DSLogger.logAdmin(this.getClass().getName(), "HandleCommand",e.getMessage());
 			e.printStackTrace();
 		} catch (IOException e) {			
 			e.printStackTrace();
@@ -254,8 +254,15 @@ public class HandleCommands implements Runnable{
 				objList.add("merge");
 				objList.add(partitionedMap);
 				sendMerge.writeObjectList(objList);
+				
+			
+				
+				//TODO Copy backup1 to backup2 (local)
+				//TODO Copy the partitioned key space to backup1
+				
 				//Consuming the acknowledgment send by merging node
 				sendMerge.readObject();
+				//TODO Send ack on socket object
 				
 			}
 			// tells this node to merge the received key list to its key space

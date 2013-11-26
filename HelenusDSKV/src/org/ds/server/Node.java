@@ -43,6 +43,7 @@ public class Node {
 	private BlockingQueue<Object> resultQueue ;
 	private Member itself;
 	private final ScheduledExecutorService scheduler;
+	private FrontEnd frontEnd;
 
 	private ScheduledFuture<?> gossip = null;
 	public Node(int port, String id) {
@@ -96,9 +97,13 @@ public class Node {
 		DSLogger.log("Node", "main", "Starting receiver thread");
 		node.receiver = new Receiver(node.aliveMembers, node.deadMembers, node.receiveSocket, node.lockUpdateMember);
 		node.scheduler.execute(node.receiver);
-		
+		String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
+		String contactMachineIP = contactMachineAddr.split(":")[0];
+		if (getLocalIP().equals(contactMachineIP)) {
+			node.frontEnd = new FrontEnd(node.aliveMembers, node.deadMembers, node.lockUpdateMember, node.itself);
+			node.scheduler.execute(node.frontEnd);
+		}
 		node.listenToCommands();
-		
 		
 
 	}
@@ -156,7 +161,7 @@ public class Node {
 				executor.execute(new HandleCommands(serverSocket.accept(), this.aliveMembers, this.lockUpdateMember,this.operationQueue,this.resultQueue, this.itself));
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			DSLogger.logAdmin("StartServer","listenToCommands",e.getMessage());
 			e.printStackTrace();
 		}
 		
