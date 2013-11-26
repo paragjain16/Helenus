@@ -100,7 +100,7 @@ public class Node {
 		String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
 		String contactMachineIP = contactMachineAddr.split(":")[0];
 		if (getLocalIP().equals(contactMachineIP)) {
-			node.frontEnd = new FrontEnd(node.aliveMembers, node.deadMembers, node.lockUpdateMember);
+			node.frontEnd = new FrontEnd(node.aliveMembers, node.deadMembers, node.lockUpdateMember, node.itself);
 			node.scheduler.execute(node.frontEnd);
 		}
 		node.listenToCommands();
