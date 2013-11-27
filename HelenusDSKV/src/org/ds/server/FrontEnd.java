@@ -207,8 +207,10 @@ public class FrontEnd implements Runnable{
 							}
 							
 							DSLogger.logFE(this.getClass().getName(), "run","Waiting for "+consistencyLevel+" threads to finish operation");
-							while(resultMap.size()!=consistencyLevel){
-								
+							while(true){
+								if(resultMap.size()==consistencyLevel){
+									break;
+								}
 							}
 							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +resultMap);
 							socket.writeObject(resultMap.values().toArray()[0]);

@@ -42,7 +42,9 @@ public class AsynchFEExecutor implements Runnable{
 			Object result = socket.readObject();
 			DSLogger.logFE(this.getClass().getName(), "run","ack received from  "+socket.getSocket().getRemoteSocketAddress());
 			synchronized (lock) {
+				DSLogger.logFE(this.getClass().getName(), "run","Putting value in resultMap from  "+socket.getSocket().getRemoteSocketAddress()+" now the size is "+resultMap.size());
 				resultMap.put(((InetSocketAddress)(socket.getSocket().getRemoteSocketAddress())).getAddress().getHostAddress(), result);
+				DSLogger.logFE(this.getClass().getName(), "run","value put in resultMap of size  "+resultMap.size());
 			}
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
