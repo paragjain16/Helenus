@@ -56,6 +56,7 @@ public class FrontEnd implements Runnable{
 					DSLogger.logFE("FrontEnd","run","Listening to commands");
 					while(true){	
 						socket = new DSocket(serverSocket.accept());
+						DSLogger.logFE("FrontEnd","run","Accepted request from "+socket.getSocket().getRemoteSocketAddress());
 						List<Object> argList = (ArrayList<Object>)socket.readObject();
 						String cmd=(String) argList.get(0);
 						synchronized (lock) {
@@ -69,14 +70,21 @@ public class FrontEnd implements Runnable{
 							// Partition key space and send to new node.
 							Member newMember = (Member)argList.get(1); 
 							int newMemberHashId = Integer.parseInt(newMember.getIdentifier());
-							DSocket joinRequest = new DSocket(newMember.getAddress().getHostAddress(), newMember.getPort());
+							DSLogger.logFE(this.getClass().getName(), "run","Trying to join client: "+newMemberHashId);
+							DSLogger.logFE(this.getClass().getName(), "run","Contacting : "+itself.getAddress().getHostAddress()+":"+itself.getPort());
+							//DSocket joinRequest = new DSocket(newMember.getAddress().getHostAddress(), newMember.getPort());
+							//Contact its own server to let the new machine join the network
+							DSocket joinRequest = new DSocket(itself.getAddress().getHostAddress(), itself.getPort());
 /*							List<Object> newCmd = new ArrayList<Object>();
 							newCmd.add("joinMe");
 							newCmd.add(newMember);*/
+							DSLogger.logFE(this.getClass().getName(), "run","Connection established : "+joinRequest.getSocket());
+							DSLogger.logFE(this.getClass().getName(), "run","Writing to socket : "+argList);
 							joinRequest.writeObjectList(argList);
 							//TODO wait for ack
-							
-							
+							joinRequest.readObject();
+							DSLogger.logFE(this.getClass().getName(), "run","Ack received from : "+joinRequest.getSocket().getRemoteSocketAddress());
+							/*
 							//Get primary and backup1 from previous node to new node. It will become backup1 and backup2 of new node respectively. 
 							argList.clear();
 							argList.add(0, "sendKeys"); //command
@@ -116,7 +124,7 @@ public class FrontEnd implements Runnable{
 								sendMerge.writeObjectList(argList);
 								//TODO wait for ack
 							}
-							
+							*/
 						}
 						else if(cmd.equals("put")){
 							

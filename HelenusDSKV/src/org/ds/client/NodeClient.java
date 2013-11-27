@@ -82,7 +82,7 @@ public class NodeClient {
 		NodeClient client = new NodeClient();
 		String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
 		client.contactMachineIP = contactMachineAddr.split(":")[0];
-		client.contactMachinePort = 4000;//Integer.parseInt(contactMachineAddr.split(":")[1]);
+		client.contactMachinePort = Integer.parseInt(contactMachineAddr.split(":")[1]);
 
 		if (cmd.hasOption("l")) {
 			// Invoke the insert method on NodeClient
