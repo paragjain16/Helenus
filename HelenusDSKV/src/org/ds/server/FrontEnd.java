@@ -55,7 +55,8 @@ public class FrontEnd implements Runnable{
 		//accept requests and blocks till it is served
 				try {
 					DSLogger.logFE("FrontEnd","run","Listening to commands");
-					while(true){	
+					while(true){
+						DSLogger.logFE("FrontEnd","run","Listening to commands");
 						socket = new DSocket(serverSocket.accept());
 						DSLogger.logFE("FrontEnd","run","Accepted request from "+socket.getSocket().getRemoteSocketAddress());
 						List<Object> argList = (ArrayList<Object>)socket.readObject();
@@ -134,6 +135,7 @@ public class FrontEnd implements Runnable{
 							DSLogger.logFE(this.getClass().getName(), "run","In put request");
 							Object lockResult = new Object();
 							HashMap<String, Object> resultMap = new HashMap<String, Object>();
+							HashMap<Integer, Integer> replicas = new HashMap<Integer, Integer>();
 							
 							
 							String key= (String)argList.get(2);
@@ -168,13 +170,20 @@ public class FrontEnd implements Runnable{
 							}else{
 								primayReplica = sortedAliveMembers.higherKey(hashedKey)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(hashedKey);
 							}
-							DSLogger.logFE(this.getClass().getName(), "run","Primary replica for this key is "+primayReplica);
+							replicas.put(0, primayReplica);
+							DSLogger.logFE(this.getClass().getName(), "run","Primary replica for this key is "+replicas.get(0));
 							
 							Integer firstReplica = sortedAliveMembers.higherKey(primayReplica)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(primayReplica);
 							Integer secondReplica = sortedAliveMembers.higherKey(firstReplica)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(firstReplica);
 							
-							DSLogger.logFE(this.getClass().getName(), "run","First replica for this key is "+firstReplica);
-							DSLogger.logFE(this.getClass().getName(), "run","Second replica for this key is "+secondReplica);
+							if(!replicas.values().contains(firstReplica)){
+								replicas.put(1, firstReplica);
+							}
+							if(!replicas.values().contains(secondReplica)){
+								replicas.put(2, secondReplica);
+							}
+							DSLogger.logFE(this.getClass().getName(), "run","First replica for this key is "+replicas.get(1));
+							DSLogger.logFE(this.getClass().getName(), "run","Second replica for this key is "+replicas.get(2));
 							
 							
 							// Contact all replicas to insert the received key but wait for reply from no of machines defined
@@ -208,14 +217,16 @@ public class FrontEnd implements Runnable{
 							
 							DSLogger.logFE(this.getClass().getName(), "run","Waiting for "+consistencyLevel+" threads to finish operation");
 							while(true){
+								//DSLogger.logFE(this.getClass().getName(), "run"," consistency level is "+consistencyLevel+"Result Map size is "+resultMap.size());
 								if(resultMap.size()==consistencyLevel){
+									DSLogger.logFE(this.getClass().getName(), "run","Consistency level "+consistencyLevel+" satisfied");
 									break;
 								}
 							}
 							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +resultMap);
 							socket.writeObject(resultMap.values().toArray()[0]);
 							
-							DSLogger.logFE(this.getClass().getName(), "run","Existing");
+							DSLogger.logFE(this.getClass().getName(), "run","Exiting");
 						}
 					}
 				} catch (IOException e) {

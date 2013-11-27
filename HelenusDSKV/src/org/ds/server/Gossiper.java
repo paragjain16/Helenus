@@ -106,12 +106,12 @@ public class Gossiper implements Runnable{
 	}
 	//Choose a random member to gossip.. try 15 times if the chosen member is itself otherwise return null
 	public Member chooseRandom(){
-		DSLogger.log("Gossiper", "chooseRandom", "Choosing a Random member");
+		//DSLogger.log("Gossiper", "chooseRandom", "Choosing a Random member");
 		Random random = new Random();
 		int tryAnother = 15;
 		while(tryAnother-- >0){
 			int i = random.nextInt(memberList.size());
-			DSLogger.log("Gossiper", "chooseRandom", "Random "+memberList.get(i).getIdentifier());
+			//DSLogger.log("Gossiper", "chooseRandom", "Random "+memberList.get(i).getIdentifier());
 			if(!(memberList.get(i) == itself)){
 				DSLogger.log("Gossiper", "chooseRandom", "Member "+memberList.get(i).getIdentifier()+" chosen to gossip");
 				return memberList.get(i);
