@@ -82,8 +82,7 @@ public class NodeClient {
 		NodeClient client = new NodeClient();
 		String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
 		client.contactMachineIP = contactMachineAddr.split(":")[0];
-		client.contactMachinePort = Integer.parseInt(contactMachineAddr
-				.split(":")[1]);
+		client.contactMachinePort = 4000;//Integer.parseInt(contactMachineAddr.split(":")[1]);
 
 		if (cmd.hasOption("l")) {
 			// Invoke the insert method on NodeClient
@@ -91,8 +90,7 @@ public class NodeClient {
 			Object objValue = client.lookup(key, consistencyLevel);
 			if (objValue instanceof String
 					&& objValue.toString().equals("!#KEYNOTFOUND#!")) {
-				System.out
-						.println("Entered key not found in the distributed key value store");
+				System.out.println("Entered key not found in the distributed key value store");
 			} else {
 				System.out.println("Object:" + objValue);
 			}
@@ -275,6 +273,8 @@ public class NodeClient {
 		DSLogger.logAdmin("NodeClient", "invokeCommand", "Entering");
 		DSLogger.logAdmin("NodeClient", "invokeCommand", objList.get(0)
 				.toString());
+		
+		
 		try {
 
 			DSocket server = new DSocket(contactMachineIP, contactMachinePort);
