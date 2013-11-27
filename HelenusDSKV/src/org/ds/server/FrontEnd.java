@@ -56,6 +56,7 @@ public class FrontEnd implements Runnable{
 					DSLogger.logFE("FrontEnd","run","Listening to commands");
 					while(true){	
 						socket = new DSocket(serverSocket.accept());
+						DSLogger.logFE("FrontEnd","run","Accepted request from "+socket.getSocket().getRemoteSocketAddress());
 						List<Object> argList = (ArrayList<Object>)socket.readObject();
 						String cmd=(String) argList.get(0);
 						synchronized (lock) {
