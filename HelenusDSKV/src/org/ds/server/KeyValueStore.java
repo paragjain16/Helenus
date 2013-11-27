@@ -101,6 +101,7 @@ public class KeyValueStore implements Runnable {
 					"Partitioning key value store until key:" + oper.getKey());
 			// Sort the keyvalue store and return the set until the key of the
 			// new node.
+			chosenKeyValueStoreMap=primaryKeyValueStoreMap;
 			Integer minNodeKey = Hash.doHash(oper.getKey());
 			Integer maxNodeKey = Integer.parseInt(itself.getIdentifier());
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
@@ -137,6 +138,10 @@ public class KeyValueStore implements Runnable {
 					}
 				}				
 			}
+			//Copy backup1 to backup2 (local)
+			secondBackupKeyValueStore=firstBackupKeyValueStore;
+			//Copy the partitioned key space to backup1
+			firstBackupKeyValueStore=newMap;
 			try {
 				DSLogger.logAdmin("KeyValueStore", "performOperation","Putting hashmap of size:" + newMap.size());
 				resultQueue.put(newMap);

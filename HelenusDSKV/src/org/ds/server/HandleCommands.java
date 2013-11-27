@@ -10,9 +10,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 
+
 import org.ds.hash.Hash;
 import org.ds.logger.DSLogger;
 import org.ds.member.Member;
+import org.ds.server.KVStoreOperation.MapType;
 import org.ds.socket.DSocket;
 
 /**
@@ -159,7 +161,7 @@ public class HandleCommands implements Runnable{
 				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to hold the actual key-value.
 				Object value=(Object)argList.get(2);
 				Integer mapNumber=(Integer)argList.get(3);
-				
+				MapType mapType=MapType.values()[mapNumber];
 				DSLogger.logAdmin("HandleCommand", "run","Entered put on node "+itself.getIdentifier());
 				Integer nextNodeId = -1;
 				if(sortedAliveMembers.containsKey(hashedKey)){
@@ -171,7 +173,7 @@ public class HandleCommands implements Runnable{
 				
 				if(nextNodeId.toString().equals(itself.getIdentifier())){
 					DSLogger.logAdmin("HandleCommand", "run","In local key-value store, putting up key:"+key+" and value:"+value);
-					KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.PUT,KVStoreOperation.MapType.PRIMARY);
+					KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.PUT,mapType);
 					operationQueue.put(operation);	
 				}else{
 					DSLogger.logAdmin("HandleCommand", "run","Contacting "+nextNodeId+" for putting key:"+key+" and value:"+value+" since hash of the key is :"+hashedKey);
@@ -253,17 +255,13 @@ public class HandleCommands implements Runnable{
 				List<Object>  objList= new ArrayList<Object>();
 				objList.add("merge");
 				objList.add(partitionedMap);
-				sendMerge.writeObjectList(objList);
-				
-			
-				
-				//TODO Copy backup1 to backup2 (local)
-				//TODO Copy the partitioned key space to backup1
-				
+				sendMerge.writeObjectList(objList);			
+					
 				//Consuming the acknowledgment send by merging node
 				sendMerge.readObject();
-				//TODO Send ack on socket object
-				
+				// Send ack on socket object established with FE.
+				String ack="ack";
+				socket.writeObject(ack);
 			}
 			// tells this node to merge the received key list to its key space
 			else if(cmd.equals("merge")){
