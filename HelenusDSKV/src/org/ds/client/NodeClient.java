@@ -52,8 +52,8 @@ public class NodeClient {
 		options.addOption("til", false, "test insert and lookup");
 
 		// automatically generate the help statement
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp("help", options);
+		//HelpFormatter formatter = new HelpFormatter();
+		//formatter.printHelp("help", options);
 		System.setProperty("logfile.name", "./machine.log");
 		CommandLineParser parser = new PosixParser();
 		CommandLine cmd = null;
