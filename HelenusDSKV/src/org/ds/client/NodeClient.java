@@ -277,7 +277,7 @@ public class NodeClient {
 		
 		try {
 
-			DSocket server = new DSocket(contactMachineIP, contactMachinePort);
+			DSocket server = new DSocket(contactMachineIP, 4000);
 			DSLogger.logFE("NodeClient", "invokeCommand", "Socket connection with FE established");
 			server.writeObjectList(objList);
 			Object output = null;
