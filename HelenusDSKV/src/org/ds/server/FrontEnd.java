@@ -60,7 +60,7 @@ public class FrontEnd implements Runnable{
 						String cmd=(String) argList.get(0);
 						synchronized (lock) {
 							sortedAliveMembers = this.constructSortedMap(aliveMembers);
-							DSLogger.logAdmin(this.getClass().getName(), "run","Sorted Map :"+sortedAliveMembers);
+							DSLogger.logFE(this.getClass().getName(), "run","Sorted Map :"+sortedAliveMembers);
 						}
 						DSLogger.logFE(this.getClass().getName(), "run","Received command from client: "+cmd);
 						/*
