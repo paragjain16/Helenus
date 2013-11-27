@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.prefs.BackingStoreException;
 
 import org.ds.hash.Hash;
 import org.ds.logger.DSLogger;
 import org.ds.member.Member;
+import org.ds.server.KVStoreOperation.MapType;
 
 /**
  * @author pjain11, mallapu2
@@ -59,8 +61,17 @@ public class KeyValueStore implements Runnable {
 
 	private void performOperation(KVStoreOperation oper) {
 		//Select a keystore to operate on based on the hash of the key.
+		MapType chosenType=oper.getMapType();
+		switch(chosenType){
+		case PRIMARY:chosenKeyValueStoreMap=primaryKeyValueStoreMap;
+		             break;
+		case BACKUP1:chosenKeyValueStoreMap=firstBackupKeyValueStore;
+        			break;
+		case BACKUP2:chosenKeyValueStoreMap=secondBackupKeyValueStore;
+        			break;		             
+		}
 		DSLogger.logAdmin("KeyValueStore", "performOperation", "Entered performOperation");
-		DSLogger.logAdmin("KeyValueStore", "performOperation", chosenKeyValueStoreMap.toString());
+		//DSLogger.logAdmin("KeyValueStore", "performOperation", chosenKeyValueStoreMap.toString());
 		Object retValue = null;
 		switch (oper.getOperType()) {
 		case GET:
