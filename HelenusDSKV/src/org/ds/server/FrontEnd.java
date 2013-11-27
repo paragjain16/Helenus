@@ -41,6 +41,7 @@ public class FrontEnd implements Runnable{
 		this.aliveMembers = aliveMembers;
 		this.deadMembers = deadMembers;
 		this.lock = lock;
+		this.itself = itself;
 		try {
 			serverSocket = new ServerSocket(4000);
 		} catch (IOException e) {
@@ -71,7 +72,10 @@ public class FrontEnd implements Runnable{
 							Member newMember = (Member)argList.get(1); 
 							int newMemberHashId = Integer.parseInt(newMember.getIdentifier());
 							DSLogger.logFE(this.getClass().getName(), "run","Trying to join client: "+newMemberHashId);
+							
+							
 							DSLogger.logFE(this.getClass().getName(), "run","Contacting : "+itself.getAddress().getHostAddress()+":"+itself.getPort());
+							
 							//DSocket joinRequest = new DSocket(newMember.getAddress().getHostAddress(), newMember.getPort());
 							//Contact its own server to let the new machine join the network
 							DSocket joinRequest = new DSocket(itself.getAddress().getHostAddress(), itself.getPort());
