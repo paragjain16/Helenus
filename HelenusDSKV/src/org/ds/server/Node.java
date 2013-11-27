@@ -122,14 +122,14 @@ public class Node {
 		
 		if (!getLocalIP().equals(contactMachineIP)) {
 			try {
-				DSLogger.logAdmin("Node", "joinNetwork", "Sending request to join Network to "+contactMachineIP+contactMachinePort);
-				DSocket joinRequest = new DSocket(contactMachineIP, contactMachinePort);
+				DSLogger.logAdmin("Node", "joinNetwork", "Sending request to join Network to "+contactMachineIP+4000);
+				DSocket joinRequest = new DSocket(contactMachineIP, 4000);
 				List<Object> cmd = new ArrayList<Object>();
 				cmd.add("joinMe");
 				cmd.add(itself);
 				joinRequest.writeObjectList(cmd);
-				Member dummyContact = new Member(InetAddress.getByName(contactMachineIP), "1", 4000);
-				aliveMembers.put(dummyContact.getIdentifier(), dummyContact);	
+				//Member dummyContact = new Member(InetAddress.getByName(contactMachineIP), "1", 4000);
+				//aliveMembers.put(dummyContact.getIdentifier(), dummyContact);	
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
 			} catch (UnknownHostException e) {

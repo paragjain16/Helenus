@@ -44,7 +44,7 @@ public class Hash {
 		
 	} 
 	public static void main(String[] args) {
-		doHash("1check");
+		/*doHash("1check");
 		doHash("2check");
 		doHash("3check");
 		doHash("1256");
@@ -53,6 +53,7 @@ public class Hash {
 		doHash("check1");
 		doHash("check2");
 		doHash("sdfsdf");
-		doHash("Test123");
+		doHash("Test123");*/
+		System.out.println(doHash("1#172.16.148.594000"));
 	}
 }
