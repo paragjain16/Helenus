@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import org.ds.hash.Hash;
 import org.ds.logger.DSLogger;
@@ -115,35 +117,89 @@ public class FrontEnd implements Runnable{
 								//TODO wait for ack
 							}
 							
-						}else if(cmd.equals("put")){
+						}
+						else if(cmd.equals("put")){
+							
+							Object lock = new Object();
+							HashMap<String, Object> resultMap = new HashMap<String, Object>();
+							
+							
 							String key= (String)argList.get(1);
 							Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to hold the actual key-value.
 							Object value=(Object)argList.get(2);
+							//0 - ONE
+							//1 - QUORUM
+							//2 - ALL
+							Integer consistencyLevel = (Integer)argList.get(3);
+							int count = 1;
+							switch(consistencyLevel){
+							case 0:
+								count = 1;
+								break;
+							case 1:
+								count = 2;
+								break;
+							case 2:
+								count = 3;
+								break;
+							default:
+								count = 1;
+							}
 							
 							
 							DSLogger.logFE(this.getClass().getName(), "run","Received put request from "+socket.getSocket().getRemoteSocketAddress());
-							Integer nextNodeId = -1;
+							Integer primayReplica = -1;
 							if(sortedAliveMembers.containsKey(hashedKey)){
-								nextNodeId = hashedKey;
+								primayReplica = hashedKey;
 							}else{
-								nextNodeId = sortedAliveMembers.higherKey(hashedKey)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(hashedKey);
+								primayReplica = sortedAliveMembers.higherKey(hashedKey)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(hashedKey);
 							}
+							DSLogger.logFE(this.getClass().getName(), "run","Primary replica for this key is "+primayReplica);
+							
+							Integer firstReplica = sortedAliveMembers.higherKey(primayReplica)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(primayReplica);
+							Integer secondReplica = sortedAliveMembers.higherKey(firstReplica)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(firstReplica);
+							
+							DSLogger.logFE(this.getClass().getName(), "run","First replica for this key is "+firstReplica);
+							DSLogger.logFE(this.getClass().getName(), "run","Second replica for this key is "+secondReplica);
 							
 							
-							if(nextNodeId.toString().equals(itself.getIdentifier())){
-								DSLogger.logAdmin("HandleCommand", "run","In local key-value store, putting up key:"+key+" and value:"+value);
-								KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.PUT,KVStoreOperation.MapType.PRIMARY);
-								//operationQueue.put(operation);	
-							}else{
-								DSLogger.logAdmin("HandleCommand", "run","Contacting "+nextNodeId+" for putting key:"+key+" and value:"+value+" since hash of the key is :"+hashedKey);
-								DSocket sendMerge = new DSocket(aliveMembers.get(nextNodeId+"").getAddress().getHostAddress(), aliveMembers.get(nextNodeId+"").getPort());
-								List<Object>  objList= new ArrayList<Object>();
-								objList.add("put");
-								objList.add(key);
-								objList.add(value);
-								sendMerge.writeObjectList(objList);
+							// Contact all replicas to insert the received key but wait for reply from no of machines defined
+							// by consistency level
+							
+							Executor executor = Executors.newFixedThreadPool(3);
+							String address = "";
+							int port = -1;
+							if(aliveMembers.get(primayReplica+"")!=null){
+								address = aliveMembers.get(primayReplica+"").getAddress().getHostAddress();
+								port = aliveMembers.get(primayReplica+"").getPort();
+								DSLogger.logFE(this.getClass().getName(), "run","Contacting "+address+" : "+port+ "for operation "+cmd);
+								executor.execute(new AsynchFEExecutor(resultMap, lock, address, port, argList, 0));
 							}
-										
+							
+							//Contact first replica
+							if(aliveMembers.get(firstReplica+"")!=null){
+								address = aliveMembers.get(firstReplica+"").getAddress().getHostAddress();
+								port = aliveMembers.get(firstReplica+"").getPort();
+								DSLogger.logFE(this.getClass().getName(), "run","Contacting "+address+" : "+port+ "for operation "+cmd);
+								executor.execute(new AsynchFEExecutor(resultMap, lock, address, port, argList, 1));
+							}
+							
+							//contact second replica
+							if(aliveMembers.get(secondReplica+"")!=null){
+								address = aliveMembers.get(secondReplica+"").getAddress().getHostAddress();
+								port = aliveMembers.get(secondReplica+"").getPort();
+								DSLogger.logFE(this.getClass().getName(), "run","Contacting "+address+" : "+port+ "for operation "+cmd);
+								executor.execute(new AsynchFEExecutor(resultMap, lock, address, port, argList, 2));
+							}
+							
+							DSLogger.logFE(this.getClass().getName(), "run","Waiting for "+count+" threads to finish operation");
+							while(resultMap.size()!=count){
+								
+							}
+							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +resultMap);
+							socket.writeObject(resultMap.values().toArray()[0]);
+							
+							DSLogger.logFE(this.getClass().getName(), "run","Existing");
 						}
 					}
 				} catch (IOException e) {
