@@ -52,8 +52,8 @@ public class NodeClient {
 		options.addOption("til", false, "test insert and lookup");
 
 		// automatically generate the help statement
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp("help", options);
+		//HelpFormatter formatter = new HelpFormatter();
+		//formatter.printHelp("help", options);
 		System.setProperty("logfile.name", "./machine.log");
 		CommandLineParser parser = new PosixParser();
 		CommandLine cmd = null;
@@ -278,6 +278,7 @@ public class NodeClient {
 		try {
 
 			DSocket server = new DSocket(contactMachineIP, contactMachinePort);
+			DSLogger.logFE("NodeClient", "invokeCommand", "Socket connection with FE established");
 			server.writeObjectList(objList);
 			Object output = null;
 			output = server.readObject();
