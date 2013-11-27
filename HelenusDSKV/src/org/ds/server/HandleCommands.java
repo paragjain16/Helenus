@@ -62,7 +62,9 @@ public class HandleCommands implements Runnable{
 				DSLogger.logAdmin(this.getClass().getName(), "run","Sorted Map :"+sortedAliveMembers);
 			}
 			List<Object> argList = (ArrayList<Object>)socket.readObject();
+			//System.out.println("Received argList of size:"+argList.size()+"from socket: "+socket.getSocket());
 			String cmd=(String) argList.get(0);
+			DSLogger.logFE("HandleCommands", "run", "For command: "+cmd+" Received argList of size:"+argList.size()+"from socket: "+socket.getSocket());
 			DSLogger.logAdmin(this.getClass().getName(), "run","Executing command:"+cmd);
 			/*
 			 * Handle different commands
