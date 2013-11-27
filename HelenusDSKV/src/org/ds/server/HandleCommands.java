@@ -193,7 +193,9 @@ public class HandleCommands implements Runnable{
 					objList.add(value);
 					sendMerge.writeObjectList(objList);
 				}
-							
+				DSLogger.logFE(this.getClass().getName(), "run","Sending ack to  "+socket.getSocket().getRemoteSocketAddress());
+				//Sending ack back to asynch executor
+				socket.writeObject("ack");
 			}
 			//for updating a key
 			else if(cmd.equals("update")){

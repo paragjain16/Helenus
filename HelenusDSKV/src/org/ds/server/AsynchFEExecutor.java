@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.ds.logger.DSLogger;
 import org.ds.socket.DSocket;
 
 public class AsynchFEExecutor implements Runnable{
@@ -30,13 +31,16 @@ public class AsynchFEExecutor implements Runnable{
 	@Override
 	public void run() {
 		
-		DSocket socket;
 		try {
 			socket = new DSocket(address, port);
+			DSLogger.logFE(this.getClass().getName(), "run","Contacting "+socket.getSocket().getRemoteSocketAddress());
 			argList.remove(1);
+			DSLogger.logFE(this.getClass().getName(), "run","Sending "+argList);
 			socket.writeObjectList(argList);
+			DSLogger.logFE(this.getClass().getName(), "run","Waiting for ack from  "+socket.getSocket().getRemoteSocketAddress());
 			//wait for ack or result
 			Object result = socket.readObject();
+			DSLogger.logFE(this.getClass().getName(), "run","ack received from  "+socket.getSocket().getRemoteSocketAddress());
 			synchronized (lock) {
 				resultMap.put(((InetSocketAddress)(socket.getSocket().getRemoteSocketAddress())).getAddress().getHostAddress(), result);
 			}

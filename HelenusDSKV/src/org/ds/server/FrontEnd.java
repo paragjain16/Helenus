@@ -131,20 +131,22 @@ public class FrontEnd implements Runnable{
 							*/
 						}
 						else if(cmd.equals("put")){
-							
-							Object lock = new Object();
+							DSLogger.logFE(this.getClass().getName(), "run","In put request");
+							Object lockResult = new Object();
 							HashMap<String, Object> resultMap = new HashMap<String, Object>();
 							
 							
-							String key= (String)argList.get(1);
+							String key= (String)argList.get(2);
 							Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to hold the actual key-value.
-							Object value=(Object)argList.get(2);
+							Object value=(Object)argList.get(3);
 							//0 - ONE
 							//1 - QUORUM
 							//2 - ALL
-							Integer consistencyLevel = (Integer)argList.get(3);
-							int count = 1;
-							switch(consistencyLevel){
+							Integer consistencyLevel = (Integer)argList.get(1);
+							
+							DSLogger.logFE(this.getClass().getName(), "run","Received parameters : Key, Value, CL "+key+":"+value+":"+consistencyLevel);
+							//int count = 1;
+							/*switch(consistencyLevel){
 							case 0:
 								count = 1;
 								break;
@@ -156,7 +158,7 @@ public class FrontEnd implements Runnable{
 								break;
 							default:
 								count = 1;
-							}
+							}*/
 							
 							
 							DSLogger.logFE(this.getClass().getName(), "run","Received put request from "+socket.getSocket().getRemoteSocketAddress());
@@ -185,7 +187,7 @@ public class FrontEnd implements Runnable{
 								address = aliveMembers.get(primayReplica+"").getAddress().getHostAddress();
 								port = aliveMembers.get(primayReplica+"").getPort();
 								DSLogger.logFE(this.getClass().getName(), "run","Contacting "+address+" : "+port+ "for operation "+cmd);
-								executor.execute(new AsynchFEExecutor(resultMap, lock, address, port, argList, 0));
+								executor.execute(new AsynchFEExecutor(resultMap, lockResult, address, port, argList, 0));
 							}
 							
 							//Contact first replica
@@ -193,7 +195,7 @@ public class FrontEnd implements Runnable{
 								address = aliveMembers.get(firstReplica+"").getAddress().getHostAddress();
 								port = aliveMembers.get(firstReplica+"").getPort();
 								DSLogger.logFE(this.getClass().getName(), "run","Contacting "+address+" : "+port+ "for operation "+cmd);
-								executor.execute(new AsynchFEExecutor(resultMap, lock, address, port, argList, 1));
+								executor.execute(new AsynchFEExecutor(resultMap, lockResult, address, port, argList, 1));
 							}
 							
 							//contact second replica
@@ -201,11 +203,11 @@ public class FrontEnd implements Runnable{
 								address = aliveMembers.get(secondReplica+"").getAddress().getHostAddress();
 								port = aliveMembers.get(secondReplica+"").getPort();
 								DSLogger.logFE(this.getClass().getName(), "run","Contacting "+address+" : "+port+ "for operation "+cmd);
-								executor.execute(new AsynchFEExecutor(resultMap, lock, address, port, argList, 2));
+								executor.execute(new AsynchFEExecutor(resultMap, lockResult, address, port, argList, 2));
 							}
 							
-							DSLogger.logFE(this.getClass().getName(), "run","Waiting for "+count+" threads to finish operation");
-							while(resultMap.size()!=count){
+							DSLogger.logFE(this.getClass().getName(), "run","Waiting for "+consistencyLevel+" threads to finish operation");
+							while(resultMap.size()!=consistencyLevel){
 								
 							}
 							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +resultMap);
