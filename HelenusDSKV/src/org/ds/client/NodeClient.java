@@ -212,7 +212,23 @@ public class NodeClient {
 	private Object show() {
 		List<Object> objList = new ArrayList<Object>();
 		objList.add(new String("display"));
-		return invokeCommand(objList, true);
+		try {
+
+			DSocket server = new DSocket("127.0.0.1",3456);
+			server.writeObjectList(objList);
+			Object output = null;
+			output = server.readObject();
+			server.close();
+			DSLogger.logAdmin("NodeClient", "invokeCommand", "Received object "
+					+ output);
+			return output;
+		} catch (UnknownHostException e) {
+			DSLogger.log("NodeClient", "invokeCommand", e.getMessage());
+		} catch (IOException e) {
+			DSLogger.log("NodeClient", "invokeCommand", e.getMessage());
+		}
+		//return invokeCommand(objList, true);
+		return null;
 	}
 
 	public Object lookup(String key, Integer consistencyLevel) {
