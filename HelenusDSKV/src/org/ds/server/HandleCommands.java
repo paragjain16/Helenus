@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 
+import javax.xml.ws.handler.MessageContext.Scope;
+
 
 import org.ds.hash.Hash;
 import org.ds.logger.DSLogger;
@@ -86,6 +88,13 @@ public class HandleCommands implements Runnable{
 				objList.add("partition");
 				objList.add(newMember);
 				sendMerge.writeObjectList(objList);
+				//consuming the ack
+				DSLogger.logFE("Node", "listenToCommands", "trying to receive ack from "+sendMerge.getSocket().getRemoteSocketAddress());
+				Object obj = sendMerge.readObject();
+				DSLogger.logFE("Node", "listenToCommands", "Received ack "+obj+" from "+sendMerge.getSocket().getRemoteSocketAddress());
+				//Sending ack back to FE
+				DSLogger.logFE("Node", "listenToCommands", "Sending ack "+obj+" to "+socket.getSocket().getRemoteSocketAddress());
+				socket.writeObject(obj);
 				
 			}
 			// sent by node leaving the network
