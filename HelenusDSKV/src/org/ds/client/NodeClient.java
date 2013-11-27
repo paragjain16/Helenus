@@ -137,9 +137,9 @@ public class NodeClient {
 				Map<String, Object> objMap = (Map<String, Object>) map;
 				DSLogger.logAdmin("NodeClient", "main",
 						"Received object in main " + objMap);
-				String id = (String) objMap.get(-1);
-				objMap.remove(-1);
-				System.out.println("At node id: " + id);
+				//String id = (String) objMap.get(-1);
+				//objMap.remove(-1);
+				//System.out.println("At node id: " + id);
 				System.out.println("Local Hashmap of size " + objMap.size()
 						+ " : " + objMap);
 			}
