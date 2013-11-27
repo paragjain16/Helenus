@@ -35,7 +35,7 @@ public class NodeClient {
 	public static void main(String[] args) {
 		String key = null;
 		String value = null;
-		Integer consistencyLevel=null;
+		Integer consistencyLevel = null;
 		Options options = new Options();
 
 		options.addOption("k", true, "key");
@@ -53,7 +53,7 @@ public class NodeClient {
 
 		// automatically generate the help statement
 		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp( "help", options );
+		formatter.printHelp("help", options);
 		System.setProperty("logfile.name", "./machine.log");
 		CommandLineParser parser = new PosixParser();
 		CommandLine cmd = null;
@@ -79,20 +79,20 @@ public class NodeClient {
 			consistencyLevel = Integer.parseInt(cmd.getOptionValue("c"));
 		}
 
-
 		NodeClient client = new NodeClient();
 		String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
 		client.contactMachineIP = contactMachineAddr.split(":")[0];
 		client.contactMachinePort = Integer.parseInt(contactMachineAddr
 				.split(":")[1]);
-		
+
 		if (cmd.hasOption("l")) {
 			// Invoke the insert method on NodeClient
 
-			Object objValue = client.lookup(key,consistencyLevel);
+			Object objValue = client.lookup(key, consistencyLevel);
 			if (objValue instanceof String
 					&& objValue.toString().equals("!#KEYNOTFOUND#!")) {
-				System.out.println("Entered key not found in the distributed key value store");
+				System.out
+						.println("Entered key not found in the distributed key value store");
 			} else {
 				System.out.println("Object:" + objValue);
 			}
@@ -100,43 +100,49 @@ public class NodeClient {
 
 		else if (cmd.hasOption("i")) {
 			// Invoke the insert method on NodeClient
-			client.insert(key, value,consistencyLevel);
+			client.insert(key, value, consistencyLevel);
 		}
 
 		else if (cmd.hasOption("u")) {
 			// Invoke the update method on NodeClient
-			Object objValue = client.lookup(key,consistencyLevel);
+			Object objValue = client.lookup(key, consistencyLevel);
 			if (objValue instanceof String
 					&& objValue.toString().equals("!#KEYNOTFOUND#!")) {
 				System.out
 						.println("Update is not possible as the entered key is not found in the distributed key value store");
 			} else {
-				client.update(key, value,consistencyLevel);
+				client.update(key, value, consistencyLevel);
 			}
 		}
 
 		else if (cmd.hasOption("d")) {
 			// Invoke the update method on NodeClient
-			Object objValue = client.lookup(key,consistencyLevel);
+			Object objValue = client.lookup(key, consistencyLevel);
 			if (objValue instanceof String
 					&& objValue.toString().equals("!#KEYNOTFOUND#!")) {
 				System.out
 						.println("Delete is not possible as the entered key is not found in the distributed key value store");
 			} else {
-				client.delete(key,consistencyLevel);
+				client.delete(key, consistencyLevel);
 			}
 		}
 
 		else if (cmd.hasOption("s")) {
 			// Invoke the update method on NodeClient
-			Map<String, Object> objMap = (Map<String, Object>) client.show();
-			DSLogger.logAdmin("NodeClient", "main", "Received object in main "
-					+ objMap);
-			String id = (String) objMap.get(-1);
-			objMap.remove(-1);
-			System.out.println("At node id: " + id);
-			System.out.println("Local Hashmap of size " + objMap.size() + " : "
-					+ objMap);
+			List<Map> mapList = (List<Map>) client.show();
+			int count = 0;
+			for (Map map : mapList) {
+				System.out.println("*******Displaying map number" + count);
+				count++;
+				Map<String, Object> objMap = (Map<String, Object>) map;
+				DSLogger.logAdmin("NodeClient", "main",
+						"Received object in main " + objMap);
+				String id = (String) objMap.get(-1);
+				objMap.remove(-1);
+				System.out.println("At node id: " + id);
+				System.out.println("Local Hashmap of size " + objMap.size()
+						+ " : " + objMap);
+			}
 		} else if (cmd.hasOption("q")) {
 			client.quit();
 		} else if (cmd.hasOption("til")) {
@@ -209,7 +215,7 @@ public class NodeClient {
 		return invokeCommand(objList, true);
 	}
 
-	public Object lookup(String key,Integer consistencyLevel) {
+	public Object lookup(String key, Integer consistencyLevel) {
 		List<Object> objList = new ArrayList<Object>();
 		objList.add(new String("get"));
 		objList.add(consistencyLevel);
@@ -217,7 +223,7 @@ public class NodeClient {
 		return invokeCommand(objList, true);
 	}
 
-	public void insert(String key, String value,Integer consistencyLevel) {
+	public void insert(String key, String value, Integer consistencyLevel) {
 		List<Object> objList = new ArrayList<Object>();
 		objList.add(new String("put"));
 		objList.add(consistencyLevel);
@@ -226,7 +232,7 @@ public class NodeClient {
 		invokeCommand(objList, true);
 	}
 
-	public void update(String key, String new_value,Integer consistencyLevel) {
+	public void update(String key, String new_value, Integer consistencyLevel) {
 		List<Object> objList = new ArrayList<Object>();
 		objList.add(new String("update"));
 		objList.add(consistencyLevel);
@@ -235,7 +241,7 @@ public class NodeClient {
 		invokeCommand(objList, true);
 	}
 
-	public void delete(String key,Integer consistencyLevel) {
+	public void delete(String key, Integer consistencyLevel) {
 		List<Object> objList = new ArrayList<Object>();
 		objList.add(new String("delete"));
 		objList.add(consistencyLevel);

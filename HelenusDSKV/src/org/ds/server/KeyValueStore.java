@@ -1,7 +1,9 @@
 package org.ds.server;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -153,9 +155,11 @@ public class KeyValueStore implements Runnable {
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Display local hashmap of size:" + chosenKeyValueStoreMap.size());
 			try {
-				Map<Integer,Object> displayMap=new HashMap<Integer,Object>();
-			//	displayMap.putAll(chosenKeyValueStoreMap);
-				resultQueue.put(displayMap);
+				List<Map> mapList=new ArrayList<Map>();
+				mapList.add(primaryKeyValueStoreMap);
+				mapList.add(firstBackupKeyValueStore);
+				mapList.add(secondBackupKeyValueStore);				
+				resultQueue.put(mapList);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
