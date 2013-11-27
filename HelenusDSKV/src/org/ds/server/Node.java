@@ -128,8 +128,8 @@ public class Node {
 				cmd.add("joinMe");
 				cmd.add(itself);
 				joinRequest.writeObjectList(cmd);
-				//Member dummyContact = new Member(InetAddress.getByName(contactMachineIP), "1", 4000);
-				//aliveMembers.put(dummyContact.getIdentifier(), dummyContact);	
+				Member dummyContact = new Member(InetAddress.getByName(contactMachineIP), "1", 3456);
+				aliveMembers.put(dummyContact.getIdentifier(), dummyContact);	
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
 			} catch (UnknownHostException e) {
