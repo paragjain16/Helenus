@@ -103,7 +103,8 @@ public class Node {
 		String contactMachineIP = contactMachineAddr.split(":")[0];
 		if (getLocalIP().equals(contactMachineIP)) {
 			node.frontEnd = new FrontEnd(node.aliveMembers, node.deadMembers, node.lockUpdateMember, node.itself);
-			node.scheduler.execute(node.frontEnd);
+			Thread frontEnd = new Thread(node.frontEnd);
+			frontEnd.start();
 		}
 		node.listenToCommands();
 		

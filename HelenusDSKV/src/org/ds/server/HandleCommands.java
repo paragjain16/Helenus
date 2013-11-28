@@ -64,6 +64,7 @@ public class HandleCommands implements Runnable{
 			//System.out.println("Received argList of size:"+argList.size()+"from socket: "+socket.getSocket());
 			String cmd=(String) argList.get(0);
 			DSLogger.logFE("HandleCommands", "run", "For command: "+cmd+" Received argList of size:"+argList.size()+"from socket: "+socket.getSocket());
+			DSLogger.logFE("HandleCommands", "run", "Received list: "+argList);
 			DSLogger.logAdmin(this.getClass().getName(), "run","Executing command:"+cmd);
 			/*
 			 * Handle different commands
@@ -168,15 +169,21 @@ public class HandleCommands implements Runnable{
 			//for putting a key
 			else if(cmd.equals("put")){
 				String key= (String)argList.get(1);
-				System.out.println(key);
+				//System.out.println(key);
 				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to hold the actual key-value.
 				Object value=(Object)argList.get(2);
-				System.out.println(value);
+				//System.out.println(value);
 				Integer mapNumber=(Integer)argList.get(3);
-				System.out.println(mapNumber);
+				//System.out.println(mapNumber);
 				MapType mapType=MapType.values()[mapNumber];
 				DSLogger.logAdmin("HandleCommand", "run","Entered put on node "+itself.getIdentifier());
-				Integer nextNodeId = -1;
+				
+				DSLogger.logAdmin("HandleCommand", "run","In local key-value store, putting up key:"+key+" and value:"+value);
+				KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.PUT,mapType);
+				operationQueue.put(operation);	
+				
+				
+/*				Integer nextNodeId = -1;
 				if(sortedAliveMembers.containsKey(hashedKey)){
 					nextNodeId = hashedKey;
 				}else{
@@ -196,7 +203,7 @@ public class HandleCommands implements Runnable{
 					objList.add(key);
 					objList.add(value);
 					sendMerge.writeObjectList(objList);
-				}
+				}*/
 				DSLogger.logFE(this.getClass().getName(), "run","Sending ack to  "+socket.getSocket().getRemoteSocketAddress());
 				//Sending ack back to asynch executor
 				socket.writeObject("ack");

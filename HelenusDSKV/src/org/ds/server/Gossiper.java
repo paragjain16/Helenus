@@ -61,7 +61,7 @@ public class Gossiper implements Runnable{
 				aMember =aliveMembers.get(key);
 				//Check members for timeout
 				if(aMember.checkTimeOut()){
-					System.out.println(aMember.getIdentifier()+" timed out after"+aMember.getHeartBeat());
+					//System.out.println(aMember.getIdentifier()+" timed out after"+aMember.getHeartBeat());
 					keysToRemove.add(aMember.getIdentifier());
 					deadMembers.put(aMember.getIdentifier(), aMember);
 					DSLogger.report(aMember.getIdentifier()," added to dead list");

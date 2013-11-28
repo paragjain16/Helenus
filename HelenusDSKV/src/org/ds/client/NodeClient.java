@@ -276,8 +276,9 @@ public class NodeClient {
 		
 		
 		try {
-
+			//System.out.println("Contacting "+contactMachineIP+" at port 4000");
 			DSocket server = new DSocket(contactMachineIP, 4000);
+			//System.out.println("Connection established with "+server.getSocket());
 			DSLogger.logFE("NodeClient", "invokeCommand", "Socket connection with FE established");
 			server.writeObjectList(objList);
 			Object output = null;

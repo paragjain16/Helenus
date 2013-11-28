@@ -2,6 +2,7 @@ package org.ds.server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,11 +54,15 @@ public class FrontEnd implements Runnable{
 	@Override
 	public void run() {
 		//accept requests and blocks till it is served
+		while(true){
 				try {
 					DSLogger.logFE("FrontEnd","run","Listening to commands");
-					while(true){
+					
+						System.out.println("blocked on listening to cmd");
 						DSLogger.logFE("FrontEnd","run","Listening to commands");
-						socket = new DSocket(serverSocket.accept());
+						Socket normalSocket = serverSocket.accept();
+						socket = new DSocket(normalSocket);
+						System.out.println("Accepted request from "+socket.getSocket().getRemoteSocketAddress());
 						DSLogger.logFE("FrontEnd","run","Accepted request from "+socket.getSocket().getRemoteSocketAddress());
 						List<Object> argList = (ArrayList<Object>)socket.readObject();
 						String cmd=(String) argList.get(0);
@@ -220,22 +225,25 @@ public class FrontEnd implements Runnable{
 							DSLogger.logFE(this.getClass().getName(), "run","Waiting for "+consistencyLevel+" threads to finish operation");
 							while(true){
 								//DSLogger.logFE(this.getClass().getName(), "run"," consistency level is "+consistencyLevel+"Result Map size is "+resultMap.size());
-								if(resultMap.size()==consistencyLevel){
-									DSLogger.logFE(this.getClass().getName(), "run","Consistency level "+consistencyLevel+" satisfied");
-									break;
+								synchronized (lockResult) {
+									if(resultMap.size()>=consistencyLevel){
+										DSLogger.logFE(this.getClass().getName(), "run","Consistency level "+consistencyLevel+" satisfied");
+										break;
+									}
 								}
+								
 							}
 							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +resultMap);
 							socket.writeObject(resultMap.values().toArray()[0]);
-							
+							socket.close();
 							DSLogger.logFE(this.getClass().getName(), "run","Exiting");
 						}
-					}
+					
 				} catch (IOException e) {
 					DSLogger.logFE("FrontEnd","run",e.getMessage());
 					e.printStackTrace();
 				}
-		
+				}
 	}
 	public TreeMap<Integer, Member> constructSortedMap(HashMap<String, Member> map){	
 		sortedAliveMembers = new TreeMap<Integer, Member>();
