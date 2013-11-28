@@ -75,6 +75,7 @@ public class Gossiper implements Runnable{
 				socket = new DatagramSocket();
 				oos = new ObjectOutputStream(baos);
 				oos.writeObject(memberList);
+				DSLogger.logFE("Gossiper", "run", "Sending Membership list by gossiper"+memberList);
 				byte[] buf = baos.toByteArray();
 				/* Using expression 2 seconds  = Log N base k where N is no of machines and k is no of machines to gossip
 				 * As out timeout time is 3 seconds and 5 seconds is the deadline in which the 
