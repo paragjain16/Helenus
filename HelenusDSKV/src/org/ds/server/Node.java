@@ -93,7 +93,7 @@ public class Node {
 		
 		node.gossiper = new Gossiper(node.aliveMembers, node.deadMembers, node.lockUpdateMember, node.itself);
 		DSLogger.log("Node", "main", "Starting to gossip");
-		node.gossip = node.scheduler.scheduleAtFixedRate(node.gossiper, 0, 500, TimeUnit.MILLISECONDS);
+		node.gossip = node.scheduler.scheduleAtFixedRate(node.gossiper, 0, 200, TimeUnit.MILLISECONDS);
 		DSLogger.log("Node", "main", "Starting receiver thread");
 		node.receiver = new Receiver(node.aliveMembers, node.deadMembers, node.receiveSocket, node.lockUpdateMember);
 		node.scheduler.execute(node.receiver);
