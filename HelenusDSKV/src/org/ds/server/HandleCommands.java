@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 
-import javax.xml.ws.handler.MessageContext.Scope;
 
 
 import org.ds.hash.Hash;
@@ -169,9 +168,12 @@ public class HandleCommands implements Runnable{
 			//for putting a key
 			else if(cmd.equals("put")){
 				String key= (String)argList.get(1);
+				System.out.println(key);
 				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to hold the actual key-value.
 				Object value=(Object)argList.get(2);
+				System.out.println(value);
 				Integer mapNumber=(Integer)argList.get(3);
+				System.out.println(mapNumber);
 				MapType mapType=MapType.values()[mapNumber];
 				DSLogger.logAdmin("HandleCommand", "run","Entered put on node "+itself.getIdentifier());
 				Integer nextNodeId = -1;

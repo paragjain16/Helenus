@@ -59,7 +59,8 @@ public class Member implements Serializable{
 		this.timeStamp = timeStamp;
 	}
 	public void incrementHB(){
-		this.setHeartBeat(getHeartBeat()+1);
+		heartBeat = heartBeat+1;
+		//this.setHeartBeat(getHeartBeat()+1);
 	}
 	
 	public InetAddress getAddress() {

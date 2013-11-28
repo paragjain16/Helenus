@@ -40,14 +40,20 @@ public class Gossiper implements Runnable{
 	
 	public void run(){	
 		DSLogger.log("Gossiper", "run", "Entered");
+		
 		//Acquire a lock on membership list
 		synchronized(lockUpdateMember){
+			
 			DSLogger.log("Gossiper", "run", "Lock Acquired by gossiper");
 			//Increment and update its own heartbeat and timestamp
 			itself.incrementHB();
 			itself.setTimeStamp(new Date().getTime());
 			aliveMembers.put(itself.getIdentifier(), itself);
 			DSLogger.log("Gossiper", "run", itself.getIdentifier()+" added to member list");
+			/*//System.out.println(aliveMembers);
+			for(Member mem :aliveMembers.values()){
+				System.out.println(mem.getHeartBeat());
+			}*/
 			Set<String> keys = aliveMembers.keySet();
 			Member aMember;
 			keysToRemove = new ArrayList<String>();
@@ -55,6 +61,7 @@ public class Gossiper implements Runnable{
 				aMember =aliveMembers.get(key);
 				//Check members for timeout
 				if(aMember.checkTimeOut()){
+					System.out.println(aMember.getIdentifier()+" timed out after"+aMember.getHeartBeat());
 					keysToRemove.add(aMember.getIdentifier());
 					deadMembers.put(aMember.getIdentifier(), aMember);
 					DSLogger.report(aMember.getIdentifier()," added to dead list");
@@ -75,7 +82,7 @@ public class Gossiper implements Runnable{
 				socket = new DatagramSocket();
 				oos = new ObjectOutputStream(baos);
 				oos.writeObject(memberList);
-				DSLogger.logFE("Gossiper", "run", "Sending Membership list by gossiper"+memberList);
+				DSLogger.log("Gossiper", "run", "Sending Membership list by gossiper"+memberList);
 				byte[] buf = baos.toByteArray();
 				/* Using expression 2 seconds  = Log N base k where N is no of machines and k is no of machines to gossip
 				 * As out timeout time is 3 seconds and 5 seconds is the deadline in which the 

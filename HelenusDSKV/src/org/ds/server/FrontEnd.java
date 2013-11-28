@@ -138,15 +138,15 @@ public class FrontEnd implements Runnable{
 							DSLogger.logFE(this.getClass().getName(), "run","In put request");
 							Object lockResult = new Object();
 							HashMap<String, Object> resultMap = new HashMap<String, Object>();
-							HashMap<Integer, Integer> replicas = new HashMap<Integer, Integer>();
+					
 							
 							
 							String key= (String)argList.get(2);
 							Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to hold the actual key-value.
 							Object value=(Object)argList.get(3);
-							//0 - ONE
-							//1 - QUORUM
-							//2 - ALL
+							//1 - ONE
+							//2 - QUORUM
+							//3 - ALL
 							Integer consistencyLevel = (Integer)argList.get(1);
 							
 							DSLogger.logFE(this.getClass().getName(), "run","Received parameters : Key, Value, CL "+key+":"+value+":"+consistencyLevel);
@@ -173,20 +173,19 @@ public class FrontEnd implements Runnable{
 							}else{
 								primayReplica = sortedAliveMembers.higherKey(hashedKey)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(hashedKey);
 							}
-							replicas.put(0, primayReplica);
-							DSLogger.logFE(this.getClass().getName(), "run","Primary replica for this key is "+replicas.get(0));
 							
-							Integer firstReplica = sortedAliveMembers.higherKey(primayReplica)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(primayReplica);
-							Integer secondReplica = sortedAliveMembers.higherKey(firstReplica)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(firstReplica);
+							DSLogger.logFE(this.getClass().getName(), "run","Primary replica for this key is "+primayReplica);
+							Integer firstReplica = null;
+							if(sortedAliveMembers.size()>1){
+								firstReplica = sortedAliveMembers.higherKey(primayReplica)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(primayReplica);
+							}
+							Integer secondReplica = null;
+							if(sortedAliveMembers.size()>2){
+								secondReplica = sortedAliveMembers.higherKey(firstReplica)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(firstReplica);
+							}
 							
-							if(!replicas.values().contains(firstReplica)){
-								replicas.put(1, firstReplica);
-							}
-							if(!replicas.values().contains(secondReplica)){
-								replicas.put(2, secondReplica);
-							}
-							DSLogger.logFE(this.getClass().getName(), "run","First replica for this key is "+replicas.get(1));
-							DSLogger.logFE(this.getClass().getName(), "run","Second replica for this key is "+replicas.get(2));
+							DSLogger.logFE(this.getClass().getName(), "run","First replica for this key is "+firstReplica);
+							DSLogger.logFE(this.getClass().getName(), "run","Second replica for this key is "+secondReplica);
 							
 							
 							// Contact all replicas to insert the received key but wait for reply from no of machines defined
@@ -198,7 +197,7 @@ public class FrontEnd implements Runnable{
 							if(aliveMembers.get(primayReplica+"")!=null){
 								address = aliveMembers.get(primayReplica+"").getAddress().getHostAddress();
 								port = aliveMembers.get(primayReplica+"").getPort();
-								DSLogger.logFE(this.getClass().getName(), "run","Contacting "+address+" : "+port+ "for operation "+cmd);
+								DSLogger.logFE(this.getClass().getName(), "run","Contacting Primary Replica "+address+" : "+port+ "for operation "+cmd);
 								executor.execute(new AsynchFEExecutor(resultMap, lockResult, address, port, argList, 0));
 							}
 							
@@ -206,7 +205,7 @@ public class FrontEnd implements Runnable{
 							if(aliveMembers.get(firstReplica+"")!=null){
 								address = aliveMembers.get(firstReplica+"").getAddress().getHostAddress();
 								port = aliveMembers.get(firstReplica+"").getPort();
-								DSLogger.logFE(this.getClass().getName(), "run","Contacting "+address+" : "+port+ "for operation "+cmd);
+								DSLogger.logFE(this.getClass().getName(), "run","Contacting First Replica "+address+" : "+port+ "for operation "+cmd);
 								executor.execute(new AsynchFEExecutor(resultMap, lockResult, address, port, argList, 1));
 							}
 							
@@ -214,7 +213,7 @@ public class FrontEnd implements Runnable{
 							if(aliveMembers.get(secondReplica+"")!=null){
 								address = aliveMembers.get(secondReplica+"").getAddress().getHostAddress();
 								port = aliveMembers.get(secondReplica+"").getPort();
-								DSLogger.logFE(this.getClass().getName(), "run","Contacting "+address+" : "+port+ "for operation "+cmd);
+								DSLogger.logFE(this.getClass().getName(), "run","Contacting Second Replica "+address+" : "+port+ "for operation "+cmd);
 								executor.execute(new AsynchFEExecutor(resultMap, lockResult, address, port, argList, 2));
 							}
 							
