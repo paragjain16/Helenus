@@ -81,7 +81,7 @@ public class Member implements Serializable{
 		this.identifier = identifier;
 	}
 	public boolean checkTimeOut(){
-		if(new Date().getTime() - this.timeStamp > 4000){
+		if(new Date().getTime() - this.timeStamp > 5000){
 			return true;
 		}
 		return false;
