@@ -72,7 +72,9 @@ public class FrontEnd implements Runnable{
 							// Partition key space and send to new node.
 							Member newMember = (Member)argList.get(1); 
 							int newMemberHashId = Integer.parseInt(newMember.getIdentifier());
-							aliveMembers.put(newMember.getIdentifier(), newMember);
+							synchronized (lock) {
+								aliveMembers.put(newMember.getIdentifier(), newMember);
+							}
 							DSLogger.logFE(this.getClass().getName(), "run","Trying to join client: "+newMemberHashId);
 							
 							
