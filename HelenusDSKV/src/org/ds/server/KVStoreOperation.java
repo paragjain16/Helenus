@@ -47,7 +47,7 @@ public class KVStoreOperation {
 	}
 
 	public enum OperationType {
-		PUT, GET, UPDATE, DELETE, MERGE, PARTITION, LEAVE, DISPLAY
+		PUT, GET, UPDATE, DELETE, MERGE, PARTITION,SEND_KEYS, LEAVE, SPLIT_BACKUP_LOCAL,DISPLAY
 	}
 
 	public enum MapType {
