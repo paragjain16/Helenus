@@ -58,7 +58,7 @@ public class FrontEnd implements Runnable{
 				try {
 					DSLogger.logFE("FrontEnd","run","Listening to commands");
 					
-						System.out.println("blocked on listening to cmd");
+						System.out.println("Waiting for command");
 						DSLogger.logFE("FrontEnd","run","Listening to commands");
 						Socket normalSocket = serverSocket.accept();
 						socket = new DSocket(normalSocket);

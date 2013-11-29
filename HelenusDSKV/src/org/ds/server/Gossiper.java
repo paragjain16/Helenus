@@ -137,20 +137,20 @@ public class Gossiper implements Runnable{
 			DSLogger.report("Gossiping to "+mem.getIdentifier(), "");
 		}
 		DSLogger.report("Alive Members ---------------------------- Local Time " + new Date(), "");
-		System.out.println("Alive Members ---------------------------- Local Time " + new Date());
+		//System.out.println("Alive Members ---------------------------- Local Time " + new Date());
 		Set<String> keys = aliveMembers.keySet();
 		Member aMember;
 		for(String key: keys){
 			aMember =aliveMembers.get(key);
-			System.out.println(aMember.getIdentifier()+" "+aMember.getHeartBeat()+" "+aMember.getTimeStamp());
+			//System.out.println(aMember.getIdentifier()+" "+aMember.getHeartBeat()+" "+aMember.getTimeStamp());
 			DSLogger.report(aMember.getIdentifier(), "");
 		}
 		DSLogger.report("Dead Members ----------------------------- Local Time "+ new Date(), "");
-		System.out.println("Dead Members ----------------------------- Local Time "+ new Date());
+		//System.out.println("Dead Members ----------------------------- Local Time "+ new Date());
 		keys = deadMembers.keySet();
 		for(String key: keys){
 			aMember =deadMembers.get(key);
-			System.out.println(aMember.getIdentifier()+" "+aMember.getHeartBeat()+" "+aMember.getTimeStamp());
+			//System.out.println(aMember.getIdentifier()+" "+aMember.getHeartBeat()+" "+aMember.getTimeStamp());
 			DSLogger.report(aMember.getIdentifier(), "");
 		}
 	}
