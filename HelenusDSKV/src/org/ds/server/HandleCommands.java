@@ -170,8 +170,8 @@ public class HandleCommands implements Runnable{
 			}
 			else if(cmd.equals("delete")){
 				String key= (String)argList.get(1);	
-				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to delete the actual key-value.
-				Integer mapNumber=(Integer)argList.get(3);			
+				
+				Integer mapNumber=(Integer)argList.get(2);			
 				MapType mapType=MapType.values()[mapNumber];
 				DSLogger.logAdmin("HandleCommand", "run","Entered delete operation on node "+itself.getIdentifier());
 				DSLogger.logAdmin("HandleCommand", "run","Deleting object in local key store for key:"+key);
