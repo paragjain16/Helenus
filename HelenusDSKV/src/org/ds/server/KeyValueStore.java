@@ -124,7 +124,7 @@ public class KeyValueStore implements Runnable {
 			chosenKeyValueStoreMap = primaryKeyValueStoreMap; // Always
 																// partition the
 																// primary map.
-			Integer minNodeKey = Hash.doHash(oper.getKey());
+			Integer minNodeKey = Integer.parseInt(oper.getKey());
 			Integer maxNodeKey = Integer.parseInt(itself.getIdentifier());
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Partitioning key value store in range :" + minNodeKey
@@ -133,7 +133,7 @@ public class KeyValueStore implements Runnable {
 			Set<String> origKeys = new HashSet<String>(
 					chosenKeyValueStoreMap.keySet());
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
-					"Original keyset of size:" + origKeys.size());
+					"Original keyset of size:" + origKeys.size()+"  "+chosenKeyValueStoreMap);
 			// Collections.sort(new ArrayList<Integer>(origKeys));
 			Integer hashedKey = null;
 			for (String key : origKeys) {
@@ -175,7 +175,7 @@ public class KeyValueStore implements Runnable {
 			firstBackupKeyValueStore = newMap;
 			try {
 				DSLogger.logAdmin("KeyValueStore", "performOperation",
-						"Putting hashmap of size:" + newMap.size());
+						"Putting new hashmap of size:" + newMap.size()+" with map Values: "+newMap);
 				resultQueue.put(newMap);
 			} catch (InterruptedException e) {
 				e.printStackTrace();

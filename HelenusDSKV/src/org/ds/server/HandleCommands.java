@@ -185,8 +185,7 @@ public class HandleCommands implements Runnable{
 			// so partition its key space and send the required keys to that node
 			else if(cmd.equals("partition")){
 				Member newMember = (Member)argList.get(1);
-				Integer newMemberId = Integer.parseInt(newMember.getIdentifier());
-				KVStoreOperation operation=new KVStoreOperation(newMemberId.toString(), KVStoreOperation.OperationType.PARTITION,KVStoreOperation.MapType.PRIMARY);
+				KVStoreOperation operation=new KVStoreOperation(newMember.getIdentifier(), KVStoreOperation.OperationType.PARTITION,KVStoreOperation.MapType.PRIMARY);
 				operationQueue.put(operation);
 				Object partitionedMap = resultQueue.take();
 				DSocket sendMerge = new DSocket(newMember.getAddress().getHostAddress(), newMember.getPort());
