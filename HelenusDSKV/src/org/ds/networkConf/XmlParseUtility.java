@@ -40,7 +40,7 @@ public class XmlParseUtility {
 				nwServerIpAddrList.clear();
 				parser.parse(currentRootDirectoryPath + FILENAME,
 						new XmlParseUtility().new TagHandler());
-
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

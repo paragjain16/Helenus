@@ -41,13 +41,15 @@ public class Receiver implements Runnable {
 	@Override
 	public void run() {
 		DSLogger.log("Receiver", "run", "Entered Run");
+		
 		byte[] msgBuffer = new byte[2048];
 		DatagramPacket msgPacket = new DatagramPacket(msgBuffer, msgBuffer.length);
+		
 		while (true) {
 
 			try {
-				DSLogger.log("Receiver", "run", "Waiting to receive UDP data");
-
+				DSLogger.log("Receiver", "run", "Waiting to receive UDP data ");
+				
 				nodeSocket.receive(msgPacket);
 
 				ByteArrayInputStream bis = new ByteArrayInputStream(msgPacket.getData());

@@ -93,15 +93,18 @@ public class Node {
 		
 		node.gossiper = new Gossiper(node.aliveMembers, node.deadMembers, node.lockUpdateMember, node.itself);
 		DSLogger.log("Node", "main", "Starting to gossip");
-		node.gossip = node.scheduler.scheduleAtFixedRate(node.gossiper, 0, 200, TimeUnit.MILLISECONDS);
+		node.gossip = node.scheduler.scheduleAtFixedRate(node.gossiper, 0, 500, TimeUnit.MILLISECONDS);
 		DSLogger.log("Node", "main", "Starting receiver thread");
 		node.receiver = new Receiver(node.aliveMembers, node.deadMembers, node.receiveSocket, node.lockUpdateMember);
-		node.scheduler.execute(node.receiver);
+		Thread receiver = new Thread(node.receiver);
+		receiver.start();
+		//node.scheduler.execute(node.receiver);
 		String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
 		String contactMachineIP = contactMachineAddr.split(":")[0];
 		if (getLocalIP().equals(contactMachineIP)) {
 			node.frontEnd = new FrontEnd(node.aliveMembers, node.deadMembers, node.lockUpdateMember, node.itself);
-			node.scheduler.execute(node.frontEnd);
+			Thread frontEnd = new Thread(node.frontEnd);
+			frontEnd.start();
 		}
 		node.listenToCommands();
 		
