@@ -76,7 +76,7 @@ public class KeyValueStore implements Runnable {
 			break;
 		}
 		DSLogger.logAdmin("KeyValueStore", "performOperation",
-				"Entered performOperation");
+				"Entered performOperation to operate on the map:"+chosenType);
 		// DSLogger.logAdmin("KeyValueStore", "performOperation",
 		// chosenKeyValueStoreMap.toString());
 		Object retValue = null;
@@ -184,18 +184,7 @@ public class KeyValueStore implements Runnable {
 		case SEND_KEYS:
 			DSLogger.logFE("KeyValueStore", "performOperation",
 					"In Send_Keys, sending map:" + oper.getMapType());
-			Map<String, Object> mapSent = new HashMap<String, Object>();
-			switch (oper.getMapType()) {
-			case PRIMARY:
-				chosenKeyValueStoreMap = primaryKeyValueStoreMap;
-				break;
-			case BACKUP1:
-				chosenKeyValueStoreMap = firstBackupKeyValueStore;
-				break;
-			case BACKUP2:
-				chosenKeyValueStoreMap = secondBackupKeyValueStore;
-				break;
-			}
+			Map<String, Object> mapSent = new HashMap<String, Object>();		
 			mapSent.putAll(chosenKeyValueStoreMap);
 			try {
 				resultQueue.put(mapSent);
@@ -283,18 +272,7 @@ public class KeyValueStore implements Runnable {
 		case MERGE:
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Merging map received from previous node");
-			Map<String, Object> mapToBeMerged = oper.getMapToBeMerged();
-			switch (oper.getMapType()) {
-			case PRIMARY:
-				chosenKeyValueStoreMap = primaryKeyValueStoreMap;
-				break;
-			case BACKUP1:
-				chosenKeyValueStoreMap = firstBackupKeyValueStore;
-				break;
-			case BACKUP2:
-				chosenKeyValueStoreMap = secondBackupKeyValueStore;
-				break;
-			}
+			Map<String, Object> mapToBeMerged = oper.getMapToBeMerged();		
 			chosenKeyValueStoreMap.putAll(mapToBeMerged);
 			try {
 				resultQueue.put("ack");

@@ -126,42 +126,14 @@ public class HandleCommands implements Runnable{
 			//for getting a key
 			else if(cmd.equals("get")){
 				String key= (String)argList.get(1);
-				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which holds the actual key-value.
-				DSLogger.logAdmin("HandleCommand", "run","Determining location for hashed key:"+hashedKey+"computed by node "+itself.getIdentifier());
+				Integer mapNumber=(Integer)argList.get(2);		
+				MapType mapType=MapType.values()[mapNumber];
+				DSLogger.logAdmin("HandleCommand", "run","Retrieving value for key:"+key+" from local key value store from mapType:"+mapType);
+				//System.out.println("Retrieving value for key:"+key+" from local key value store");
+				KVStoreOperation operation=new KVStoreOperation(key, KVStoreOperation.OperationType.GET,mapType);
+				operationQueue.put(operation);
+				Object value=resultQueue.take();
 				
-
-				Integer nextNodeId = -1;
-				//If the key's id is falling on any of the node itself
-				//then don't take higher value 
-				if(sortedAliveMembers.containsKey(hashedKey)){
-					nextNodeId = hashedKey;
-				}else{
-					nextNodeId = sortedAliveMembers.higherKey(hashedKey)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(hashedKey);
-				}
-				
-				Object value=null;
-				//Contact local if the key is present locally
-				//or route the query to next node
-				if(nextNodeId.toString().equals(itself.getIdentifier())){
-					DSLogger.logAdmin("HandleCommand", "run","Retrieving value for key:"+key+" from local key value store");
-					//System.out.println("Retrieving value for key:"+key+" from local key value store");
-					KVStoreOperation operation=new KVStoreOperation(key, KVStoreOperation.OperationType.GET,KVStoreOperation.MapType.PRIMARY);
-					operationQueue.put(operation);
-					value=resultQueue.take();
-				}
-				else{
-					//Send it to requester node directly as doing it in Node would resulting in blocking situation 
-					// in which case node class would not be able to serve other requests.
-				
-					DSLogger.logAdmin("HandleCommand", "run","Contacting "+nextNodeId+" for getting key: "+key+" since hash of the key is :"+hashedKey);
-					DSocket nodeReqSocket = new DSocket(aliveMembers.get(nextNodeId+"").getAddress().getHostAddress(), aliveMembers.get(nextNodeId+"").getPort());
-					List<Object>  objList= new ArrayList<Object>();
-					objList.add("get");
-					objList.add(key);					
-					nodeReqSocket.writeObjectList(objList);		
-					value=nodeReqSocket.readObject();
-					nodeReqSocket.close();
-				}
 				//Write back the value to the requesting client socket
 				if(value!=null)
 				DSLogger.logAdmin("HandleCommand", "run","Writing back value"+value+" to the client socket");
@@ -169,102 +141,45 @@ public class HandleCommands implements Runnable{
 			}
 			//for putting a key
 			else if(cmd.equals("put")){
-				String key= (String)argList.get(1);
-				//System.out.println(key);
-				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to hold the actual key-value.
-				Object value=(Object)argList.get(2);
-				//System.out.println(value);
-				Integer mapNumber=(Integer)argList.get(3);
-				//System.out.println(mapNumber);
+				String key= (String)argList.get(1);				
+				Object value=(Object)argList.get(2);				
+				Integer mapNumber=(Integer)argList.get(3);			
 				MapType mapType=MapType.values()[mapNumber];
 				DSLogger.logAdmin("HandleCommand", "run","Entered put on node "+itself.getIdentifier());
 				
 				DSLogger.logAdmin("HandleCommand", "run","In local key-value store, putting up key:"+key+" and value:"+value);
 				KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.PUT,mapType);
 				operationQueue.put(operation);	
-				
-				
-/*				Integer nextNodeId = -1;
-				if(sortedAliveMembers.containsKey(hashedKey)){
-					nextNodeId = hashedKey;
-				}else{
-					nextNodeId = sortedAliveMembers.higherKey(hashedKey)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(hashedKey);
-				}
-				
-				
-				if(nextNodeId.toString().equals(itself.getIdentifier())){
-					DSLogger.logAdmin("HandleCommand", "run","In local key-value store, putting up key:"+key+" and value:"+value);
-					KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.PUT,mapType);
-					operationQueue.put(operation);	
-				}else{
-					DSLogger.logAdmin("HandleCommand", "run","Contacting "+nextNodeId+" for putting key:"+key+" and value:"+value+" since hash of the key is :"+hashedKey);
-					DSocket sendMerge = new DSocket(aliveMembers.get(nextNodeId+"").getAddress().getHostAddress(), aliveMembers.get(nextNodeId+"").getPort());
-					List<Object>  objList= new ArrayList<Object>();
-					objList.add("put");
-					objList.add(key);
-					objList.add(value);
-					sendMerge.writeObjectList(objList);
-				}*/
 				DSLogger.logFE(this.getClass().getName(), "run","Sending ack to  "+socket.getSocket().getRemoteSocketAddress());
 				//Sending ack back to asynch executor
 				socket.writeObject("ack");
 			}
 			//for updating a key
 			else if(cmd.equals("update")){
-				String key= (String)argList.get(1);
-				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to update the actual key-value.
+				String key= (String)argList.get(1);				
 				Object value=(Object)argList.get(2);
-
+				Integer mapNumber=(Integer)argList.get(3);			
+				MapType mapType=MapType.values()[mapNumber];
 				DSLogger.logAdmin("HandleCommand", "run","Entered update operation on node "+itself.getIdentifier());
-				
-				Integer nextNodeId = -1;
-				if(sortedAliveMembers.containsKey(hashedKey)){
-					nextNodeId = hashedKey;
-				}else{
-					nextNodeId = sortedAliveMembers.higherKey(hashedKey)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(hashedKey);
-				}
-				
-				if(nextNodeId.toString().equals(itself.getIdentifier())){
-					DSLogger.logAdmin("HandleCommand", "run","Updating in local key-value store for key:"+key+" and new value:"+value);
-					KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.UPDATE,KVStoreOperation.MapType.PRIMARY);
-					operationQueue.put(operation);			
-				}
-				else{
-					DSLogger.logAdmin("HandleCommand", "run","Contacting "+nextNodeId+" for updating  key:"+key+" and new value:"+value + " since hash of the key was: "+hashedKey);
-					DSocket updateMerge = new DSocket(aliveMembers.get(nextNodeId+"").getAddress().getHostAddress(), aliveMembers.get(nextNodeId+"").getPort());
-					List<Object>  objList= new ArrayList<Object>();
-					objList.add("update");
-					objList.add(key);
-					objList.add(value);
-					updateMerge.writeObjectList(objList);
-				}
+				DSLogger.logAdmin("HandleCommand", "run","Updating in local key-value store for key:"+key+" and new value:"+value);
+				KVStoreOperation operation=new KVStoreOperation(key,value, KVStoreOperation.OperationType.UPDATE,mapType);
+				operationQueue.put(operation);	
+				DSLogger.logFE(this.getClass().getName(), "run","Sending ack to  "+socket.getSocket().getRemoteSocketAddress());
+				//Sending ack back to asynch executor
+				socket.writeObject("ack");
 			}
 			else if(cmd.equals("delete")){
 				String key= (String)argList.get(1);	
 				Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to delete the actual key-value.
+				Integer mapNumber=(Integer)argList.get(3);			
+				MapType mapType=MapType.values()[mapNumber];
 				DSLogger.logAdmin("HandleCommand", "run","Entered delete operation on node "+itself.getIdentifier());
-
-				Integer nextNodeId = -1;
-				if(sortedAliveMembers.containsKey(hashedKey)){
-					nextNodeId = hashedKey;
-				}else{
-					nextNodeId = sortedAliveMembers.higherKey(hashedKey)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(hashedKey);
-				}
-				
-				DSLogger.logAdmin("HandleCommand", "run","Deleting object for key "+key+" in node number: "+nextNodeId);
-				if(nextNodeId.toString().equals(itself.getIdentifier())){
-					DSLogger.logAdmin("HandleCommand", "run","Deleting object in local key store for key:"+key);
-					KVStoreOperation operation=new KVStoreOperation(key, KVStoreOperation.OperationType.DELETE,KVStoreOperation.MapType.PRIMARY);
-					operationQueue.put(operation);				
-				}
-				else{
-					DSLogger.logAdmin("HandleCommand", "run","Contacting "+nextNodeId+" for deleting  key:"+key+"since hash of the key is:"+hashedKey);
-					DSocket deleteContact = new DSocket(aliveMembers.get(nextNodeId+"").getAddress().getHostAddress(), aliveMembers.get(nextNodeId+"").getPort());
-					List<Object>  objList= new ArrayList<Object>();
-					objList.add("delete");
-				    objList.add(key);				
-				    deleteContact.writeObjectList(objList);
-				}
+				DSLogger.logAdmin("HandleCommand", "run","Deleting object in local key store for key:"+key);
+				KVStoreOperation operation=new KVStoreOperation(key, KVStoreOperation.OperationType.DELETE,mapType);
+				operationQueue.put(operation);	
+				DSLogger.logFE(this.getClass().getName(), "run","Sending ack to  "+socket.getSocket().getRemoteSocketAddress());
+				//Sending ack back to asynch executor
+				socket.writeObject("ack");
 			}
 			// tell this node that new node has come up before this node
 			// so partition its key space and send the required keys to that node
