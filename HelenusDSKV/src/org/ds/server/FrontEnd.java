@@ -94,7 +94,7 @@ public class FrontEnd implements Runnable{
 							DSLogger.logFE(this.getClass().getName(), "run","Connection established : "+joinRequest.getSocket());
 							DSLogger.logFE(this.getClass().getName(), "run","Writing to socket : "+argList);
 							joinRequest.writeObjectList(argList);
-							//TODO wait for ack
+							
 							joinRequest.readObject();
 							DSLogger.logFE(this.getClass().getName(), "run","Ack received from : "+joinRequest.getSocket().getRemoteSocketAddress());
 							
@@ -111,7 +111,7 @@ public class FrontEnd implements Runnable{
 							sendMerge.writeObjectList(argList);
 							//consume ack
 							sendMerge.readObject();
-							//TODO wait for ack
+							
 							sendMerge.close();
 							
 							//Step 2 For next to next node to new node
@@ -135,7 +135,7 @@ public class FrontEnd implements Runnable{
 									sendMerge.writeObjectList(argList);
 									//consume ack
 									sendMerge.readObject();
-									//TODO wait for ack
+									
 									sendMerge.close();
 								}
 							}
@@ -152,7 +152,33 @@ public class FrontEnd implements Runnable{
 								sendMerge.writeObjectList(argList);
 								//consume ack
 								sendMerge.readObject();
-								//TODO wait for ack
+								
+								sendMerge.close();
+							}
+							
+							//Partition backup 2 of nextTonexTonext node of new node according to new node 
+							if(sortedAliveMembers.size()>3){
+								Integer nextNodeId = sortedAliveMembers.higherKey(newMemberHashId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(newMemberHashId);
+								Member nextNode = aliveMembers.get(nextNodeId+"");
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Next node is "+nextNodeId+" : "+nextNode);
+								
+								Integer nextToNextNodeId = sortedAliveMembers.higherKey(nextNodeId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(nextNodeId);
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Next to next node is "+nextToNextNodeId);
+								
+								Integer nextToNextToNextNodeId = sortedAliveMembers.higherKey(nextToNextNodeId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(nextToNextNodeId);
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Next to next to next node is "+nextToNextToNextNodeId);
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+nextToNextToNextNodeId+" to stabilize its backup 2 as per "+newMemberHashId);
+								argList.clear();
+								argList.add(0, "splitBackup2"); //command
+								argList.add(1, newMember); //Min node for partition
+								argList.add(2, nextNode); //Max node for partition
+								sendMerge = new DSocket(aliveMembers.get(nextToNextToNextNodeId+"").getAddress().getHostAddress(), aliveMembers.get(nextToNextToNextNodeId+"").getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
 								sendMerge.close();
 							}
 						}
