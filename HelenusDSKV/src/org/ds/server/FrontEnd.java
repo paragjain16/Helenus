@@ -97,47 +97,60 @@ public class FrontEnd implements Runnable{
 							//TODO wait for ack
 							joinRequest.readObject();
 							DSLogger.logFE(this.getClass().getName(), "run","Ack received from : "+joinRequest.getSocket().getRemoteSocketAddress());
-							/*
-							//Get primary and backup1 from previous node to new node. It will become backup1 and backup2 of new node respectively. 
+							
+							//Get primary from previous node to new node. It will become backup1 of new node. 
 							argList.clear();
 							argList.add(0, "sendKeys"); //command
-							argList.add(1, newMember); //To
-							argList.add(2, 0); //keyspace to send
+							
+							argList.add(1, 0); //keyspace to send
+							argList.add(2, newMember); //To
+							argList.add(3, 1);// keyspace of destination
 							Integer prevNodeId = sortedAliveMembers.lowerKey(newMemberHashId)==null?sortedAliveMembers.lastKey():sortedAliveMembers.lowerKey(newMemberHashId);
 							DSLogger.logFE(this.getClass().getName(), "run","Asking node "+prevNodeId+" to send its primay key space to "+newMemberHashId);
 							DSocket sendMerge = new DSocket(aliveMembers.get(prevNodeId+"").getAddress().getHostAddress(), aliveMembers.get(prevNodeId+"").getPort());
 							sendMerge.writeObjectList(argList);
+							//consume ack
+							sendMerge.readObject();
 							//TODO wait for ack
 							
-							//Step 2
-							argList.clear();
-							argList.add(0, "sendKeys"); //command
-							argList.add(1, newMember); //To
-							argList.add(2, 1); //keyspace to send
-							DSLogger.logFE(this.getClass().getName(), "run","Asking node "+prevNodeId+" to send its backup1 key space to "+newMemberHashId);
-							sendMerge.writeObjectList(argList);
-							
-							//TODO wait for ack
-							
-							//Step 3 For next to next node to new node
-							Integer nextNodeId = sortedAliveMembers.higherKey(newMemberHashId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(newMemberHashId);
-							
-							DSLogger.logFE(this.getClass().getName(), "run","Next node is "+nextNodeId);
-							
-							Integer nextToNextNodeId = sortedAliveMembers.higherKey(nextNodeId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(nextNodeId);
-							
-							DSLogger.logFE(this.getClass().getName(), "run","Next to next node is "+nextToNextNodeId);
-							
-							if(nextToNextNodeId != newMemberHashId){
-								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+nextToNextNodeId+" to stabilize as per "+newMemberHashId);
+							//Step 2 For next to next node to new node
+							if(sortedAliveMembers.size()>2){
+								Integer nextNodeId = sortedAliveMembers.higherKey(newMemberHashId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(newMemberHashId);
+								Member nextNode = sortedAliveMembers.get(nextNodeId+"");
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Next node is "+nextNodeId+" : "+nextNode);
+								
+								Integer nextToNextNodeId = sortedAliveMembers.higherKey(nextNodeId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(nextNodeId);
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Next to next node is "+nextToNextNodeId);
+								
+								if(nextToNextNodeId != newMemberHashId){
+									DSLogger.logFE(this.getClass().getName(), "run","Asking node "+nextToNextNodeId+" to stabilize as per "+newMemberHashId);
+									argList.clear();
+									argList.add(0, "newNodeStabilization"); //command
+									argList.add(1, newMember); //Min node for partition
+									argList.add(2, nextNode); //Max node for partition
+									sendMerge = new DSocket(aliveMembers.get(nextToNextNodeId+"").getAddress().getHostAddress(), aliveMembers.get(nextToNextNodeId+"").getPort());
+									sendMerge.writeObjectList(argList);
+									//consume ack
+									sendMerge.readObject();
+									//TODO wait for ack
+								}
+							}
+							//Step 3 Get backup1 from previous node to new node. It will become backup2 of new node
+							if(sortedAliveMembers.size()>2){
 								argList.clear();
-								argList.add(0, "newNodeStabilization"); //command
-								argList.add(1, newMember); //To
-								sendMerge = new DSocket(aliveMembers.get(nextToNextNodeId+"").getAddress().getHostAddress(), aliveMembers.get(nextToNextNodeId+"").getPort());
+								argList.add(0, "sendKeys"); //command
+								
+								argList.add(1, 1); //keyspace to send
+								argList.add(2, newMember); //To
+								argList.add(3, 2);// keyspace of destination
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+prevNodeId+" to send its backup1 key space to "+newMemberHashId);
 								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
 								//TODO wait for ack
 							}
-							*/
 						}
 						else if(cmd.equals("put")){
 							DSLogger.logFE(this.getClass().getName(), "run","In put request");
