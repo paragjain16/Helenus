@@ -77,8 +77,11 @@ public class FrontEnd implements Runnable{
 							// Partition key space and send to new node.
 							Member newMember = (Member)argList.get(1); 
 							int newMemberHashId = Integer.parseInt(newMember.getIdentifier());
+							
 							synchronized (lock) {
 								aliveMembers.put(newMember.getIdentifier(), newMember);
+								sortedAliveMembers = this.constructSortedMap(aliveMembers);
+								DSLogger.logFE(this.getClass().getName(), "run","Sorted Map :"+sortedAliveMembers);
 							}
 							DSLogger.logFE(this.getClass().getName(), "run","Trying to join client: "+newMemberHashId);
 							
@@ -115,7 +118,8 @@ public class FrontEnd implements Runnable{
 							sendMerge.close();
 							
 							//Step 2 For next to next node to new node
-							if(sortedAliveMembers.size()>2){
+							if(aliveMembers.size()>2){
+								DSLogger.logFE(this.getClass().getName(), "run","Entering Step 1 of join Me for "+newMemberHashId);
 								Integer nextNodeId = sortedAliveMembers.higherKey(newMemberHashId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(newMemberHashId);
 								Member nextNode = aliveMembers.get(nextNodeId+"");
 								
@@ -140,7 +144,8 @@ public class FrontEnd implements Runnable{
 								}
 							}
 							//Step 3 Get backup1 from previous node to new node. It will become backup2 of new node
-							if(sortedAliveMembers.size()>2){
+							if(aliveMembers.size()>2){
+								DSLogger.logFE(this.getClass().getName(), "run","Entering Step 2 of join Me for "+newMemberHashId);
 								argList.clear();
 								argList.add(0, "sendKeys"); //command
 								
@@ -157,7 +162,8 @@ public class FrontEnd implements Runnable{
 							}
 							
 							//Partition backup 2 of nextTonexTonext node of new node according to new node 
-							if(sortedAliveMembers.size()>3){
+							if(aliveMembers.size()>3){
+								DSLogger.logFE(this.getClass().getName(), "run","Entering Step 3 of join Me for "+newMemberHashId);								
 								Integer nextNodeId = sortedAliveMembers.higherKey(newMemberHashId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(newMemberHashId);
 								Member nextNode = aliveMembers.get(nextNodeId+"");
 								
