@@ -115,6 +115,7 @@ public class HandleCommands implements Runnable{
 				List<Object>  objList= new ArrayList<Object>();
 				objList.add("merge");
 				objList.add(keyValueStore);
+				objList.add(Integer.parseInt("0"));//Merge with primary map
 				sendMerge.writeObjectList(objList);
 				String ack = (String)sendMerge.readObject();
 				if(ack.equals("ack")){
@@ -277,6 +278,7 @@ public class HandleCommands implements Runnable{
 				List<Object>  objList= new ArrayList<Object>();
 				objList.add("merge");
 				objList.add(partitionedMap);
+				objList.add(Integer.parseInt("0"));//Merge with primary map
 				sendMerge.writeObjectList(objList);			
 					
 				//Consuming the acknowledgment send by merging node
@@ -288,13 +290,50 @@ public class HandleCommands implements Runnable{
 			// tells this node to merge the received key list to its key space
 			else if(cmd.equals("merge")){
 				HashMap<String, Object> recievedKeys = (HashMap<String, Object>)argList.get(1);
+				Integer mapNumber=(Integer)argList.get(2);				
+				MapType mapType=MapType.values()[mapNumber];  //map to be merged
 				DSLogger.logAdmin("HandleCommand", "run","In merge request");
-				KVStoreOperation operation=new KVStoreOperation(recievedKeys, KVStoreOperation.OperationType.MERGE,KVStoreOperation.MapType.PRIMARY);
+				KVStoreOperation operation=new KVStoreOperation(recievedKeys, KVStoreOperation.OperationType.MERGE,mapType);
+				
 				operationQueue.put(operation);
 				DSLogger.logAdmin("HandleCommand", "run","In merge request waiting for ack");
 				String ack = (String)resultQueue.take();
 				DSLogger.logAdmin("HandleCommand", "run","In merge request got "+ack);
 				socket.writeObject(ack);
+			}
+			else if(cmd.equals("sendKeys")){
+				Integer mapNumber=(Integer)argList.get(1);				
+				MapType mapType=MapType.values()[mapNumber];  //map to be sent
+				Member newMember = (Member)argList.get(2);				
+				Integer destMapNumber=(Integer)argList.get(3);	 //destination map number to be sent to merge command			
+				KVStoreOperation operation=new KVStoreOperation("-1",KVStoreOperation.OperationType.SEND_KEYS,mapType);
+				operationQueue.put(operation);
+				
+				Object mapToBeSent = resultQueue.take();
+				DSocket sendMerge = new DSocket(newMember.getAddress().getHostAddress(), newMember.getPort());
+				List<Object>  objList= new ArrayList<Object>();
+				objList.add("merge");
+				objList.add(mapToBeSent);
+				objList.add(destMapNumber);
+				sendMerge.writeObjectList(objList);			
+					
+				//Consuming the acknowledgment send by merging node
+				sendMerge.readObject();
+				// Send ack on socket object established with FE.
+				String ack="ack";
+				socket.writeObject(ack);
+			}
+			else if(cmd.equals("newNodeStabilization")){ //required for next to next node of new node
+				Member newMember = (Member)argList.get(1);
+				Integer newMemberId = Integer.parseInt(newMember.getIdentifier());
+				Member nextToNewMember = (Member)argList.get(2);
+				Integer nextToNewMemberId = Integer.parseInt(nextToNewMember.getIdentifier());
+				KVStoreOperation operation=new KVStoreOperation(newMemberId.toString(), nextToNewMemberId.toString(),KVStoreOperation.OperationType.SPLIT_BACKUP_LOCAL,KVStoreOperation.MapType.BACKUP1);
+				operationQueue.put(operation);
+				
+				String ack=(String)resultQueue.take();
+				socket.writeObject(ack);
+				
 			}
 			//for showing the key space on console
 			else if(cmd.equals("display")){
