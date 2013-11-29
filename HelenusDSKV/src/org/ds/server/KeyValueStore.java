@@ -197,6 +197,9 @@ public class KeyValueStore implements Runnable {
 					"Splitting backup1 value store until key:" + oper.getKey());
 			minNodeKey = Integer.parseInt(oper.getKey());
 			maxNodeKey = Integer.parseInt(((String) (oper.getValue())));
+			DSLogger.logFE("KeyValueStore", "performOperation",
+					"Partitioning key value store in range :" + minNodeKey
+							+ " - " + maxNodeKey);
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Partitioning key value store in range :" + minNodeKey
 							+ " - " + maxNodeKey);
@@ -244,8 +247,8 @@ public class KeyValueStore implements Runnable {
 					}
 				}
 			}
-			secondBackupKeyValueStore=chosenKeyValueStoreMap;
-			firstBackupKeyValueStore=splitMap;
+			secondBackupKeyValueStore=splitMap;
+			firstBackupKeyValueStore=chosenKeyValueStoreMap;
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
