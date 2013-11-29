@@ -54,6 +54,6 @@ public class Hash {
 		doHash("check2");
 		doHash("sdfsdf");
 		doHash("Test123");*/
-		System.out.println(doHash("1#172.16.148.594000"));
+		System.out.println(doHash("207"));
 	}
 }

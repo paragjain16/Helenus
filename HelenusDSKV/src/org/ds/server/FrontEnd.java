@@ -112,11 +112,12 @@ public class FrontEnd implements Runnable{
 							//consume ack
 							sendMerge.readObject();
 							//TODO wait for ack
+							sendMerge.close();
 							
 							//Step 2 For next to next node to new node
 							if(sortedAliveMembers.size()>2){
 								Integer nextNodeId = sortedAliveMembers.higherKey(newMemberHashId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(newMemberHashId);
-								Member nextNode = sortedAliveMembers.get(nextNodeId+"");
+								Member nextNode = aliveMembers.get(nextNodeId+"");
 								
 								DSLogger.logFE(this.getClass().getName(), "run","Next node is "+nextNodeId+" : "+nextNode);
 								
@@ -135,6 +136,7 @@ public class FrontEnd implements Runnable{
 									//consume ack
 									sendMerge.readObject();
 									//TODO wait for ack
+									sendMerge.close();
 								}
 							}
 							//Step 3 Get backup1 from previous node to new node. It will become backup2 of new node
@@ -146,10 +148,12 @@ public class FrontEnd implements Runnable{
 								argList.add(2, newMember); //To
 								argList.add(3, 2);// keyspace of destination
 								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+prevNodeId+" to send its backup1 key space to "+newMemberHashId);
+								sendMerge = new DSocket(aliveMembers.get(prevNodeId+"").getAddress().getHostAddress(), aliveMembers.get(prevNodeId+"").getPort());
 								sendMerge.writeObjectList(argList);
 								//consume ack
 								sendMerge.readObject();
 								//TODO wait for ack
+								sendMerge.close();
 							}
 						}
 						else if(cmd.equals("put")){
