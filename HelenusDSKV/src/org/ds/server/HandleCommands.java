@@ -249,6 +249,19 @@ public class HandleCommands implements Runnable{
 				socket.writeObject(ack);
 				
 			}
+			else if(cmd.equals("splitBackup2")){ //required for 3 nodes ahead of  new node
+				Member newMember = (Member)argList.get(1);
+				Integer newMemberId = Integer.parseInt(newMember.getIdentifier());
+				Member nextToNewMember = (Member)argList.get(2);
+				Integer nextToNewMemberId = Integer.parseInt(nextToNewMember.getIdentifier());
+				KVStoreOperation operation=new KVStoreOperation(newMemberId.toString(), nextToNewMemberId.toString(),KVStoreOperation.OperationType.SPLIT_BACKUP_TWO,KVStoreOperation.MapType.BACKUP2);
+				operationQueue.put(operation);
+				
+				String ack=(String)resultQueue.take();
+				socket.writeObject(ack);
+				
+			}
+			
 			//for showing the key space on console
 			else if(cmd.equals("display")){
 				DSLogger.logAdmin("HandleCommand", "run","Retrieving local hashmap for display");

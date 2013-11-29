@@ -195,7 +195,7 @@ public class KeyValueStore implements Runnable {
 		case SPLIT_BACKUP_LOCAL:
 			DSLogger.logFE("KeyValueStore", "performOperation",
 					"Splitting backup1 value store until key:" + oper.getKey());
-			minNodeKey = Hash.doHash(oper.getKey());
+			minNodeKey = Integer.parseInt(oper.getKey());
 			maxNodeKey = Integer.parseInt(((String) (oper.getValue())));
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Partitioning key value store in range :" + minNodeKey
@@ -246,6 +246,66 @@ public class KeyValueStore implements Runnable {
 			}
 			secondBackupKeyValueStore=chosenKeyValueStoreMap;
 			firstBackupKeyValueStore=splitMap;
+			try {
+				resultQueue.put("ack");
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			break;
+			
+		case SPLIT_BACKUP_TWO: //For 3 nodes ahead of the  node which joined,split backup2 map according to new node joined.
+			DSLogger.logFE("KeyValueStore", "performOperation",
+					"Splitting backup2 value store until key:" + oper.getKey());
+			minNodeKey = Integer.parseInt(oper.getKey()); //New node
+			maxNodeKey = Integer.parseInt(((String) (oper.getValue()))); // Next to new node
+			DSLogger.logAdmin("KeyValueStore", "performOperation",
+					"Partitioning key value store in range :" + minNodeKey
+							+ " - " + maxNodeKey);
+			 splitMap = new HashMap<String, Object>();
+			chosenKeyValueStoreMap = secondBackupKeyValueStore;// Split the
+																// backup1
+																// keyValue
+																// store.
+			 origKeys = new HashSet<String>(
+					chosenKeyValueStoreMap.keySet());
+			DSLogger.logAdmin("KeyValueStore", "performOperation",
+					"Original keyset of size:" + origKeys.size());
+			// Collections.sort(new ArrayList<Integer>(origKeys));
+			hashedKey = null;
+			for (String key : origKeys) {
+				hashedKey = Hash.doHash(key.toString());// Use hashedKey for
+														// partitioning the
+														// keyset.
+				if (minNodeKey > maxNodeKey) {
+					if ((hashedKey > minNodeKey && hashedKey <= 255)
+							|| (hashedKey >= 0 && hashedKey <= maxNodeKey)) {
+						if (minNodeKey == 0 && hashedKey == 0) { // Special
+																	// handling
+																	// for node
+																	// 0 and key
+																	// 0.
+							Object value = chosenKeyValueStoreMap.get(key);
+							chosenKeyValueStoreMap.remove(key);
+							splitMap.put(key, value);
+						} else {
+							continue;
+						}
+					} else {
+						Object value = chosenKeyValueStoreMap.get(key);
+						chosenKeyValueStoreMap.remove(key);
+						splitMap.put(key, value);
+					}
+				} else {
+					if (hashedKey > minNodeKey && hashedKey <= maxNodeKey) {
+						continue;
+					} else {
+						Object value = chosenKeyValueStoreMap.get(key);
+						chosenKeyValueStoreMap.remove(key);
+						splitMap.put(key, value);
+					}
+				}
+			}
+			secondBackupKeyValueStore=chosenKeyValueStoreMap;			
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
