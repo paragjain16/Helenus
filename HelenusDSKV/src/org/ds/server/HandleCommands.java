@@ -499,7 +499,7 @@ public class HandleCommands implements Runnable {
 								(Map<String, Object>) mergeMap,
 								KVStoreOperation.OperationType.MERGE, mapType);
 					} else {
-						operation = new KVStoreOperation((String) mergeMap,
+						operation = new KVStoreOperation( ((Integer) mergeMap).toString(),
 								KVStoreOperation.OperationType.MERGE_LOCAL,
 								mapType);
 					}
