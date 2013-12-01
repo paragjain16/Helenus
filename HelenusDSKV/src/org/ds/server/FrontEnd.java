@@ -53,6 +53,7 @@ public class FrontEnd implements Runnable{
 		}
 	}
 	
+	//For all send keys, send one more parameter to replace or not.
 	@Override
 	public void run() {
 		//accept requests and blocks till it is served
@@ -109,6 +110,7 @@ public class FrontEnd implements Runnable{
 							argList.add(1, 0); //keyspace to send
 							argList.add(2, newMember); //To
 							argList.add(3, 1);// keyspace of destination
+							argList.add(4, 1);// replace 
 							Integer prevNodeId = sortedAliveMembers.lowerKey(newMemberHashId)==null?sortedAliveMembers.lastKey():sortedAliveMembers.lowerKey(newMemberHashId);
 							DSLogger.logFE(this.getClass().getName(), "run","Asking node "+prevNodeId+" to send its primay key space to "+newMemberHashId);
 							DSocket sendMerge = new DSocket(aliveMembers.get(prevNodeId+"").getAddress().getHostAddress(), aliveMembers.get(prevNodeId+"").getPort());
@@ -153,6 +155,7 @@ public class FrontEnd implements Runnable{
 								argList.add(1, 1); //keyspace to send
 								argList.add(2, newMember); //To
 								argList.add(3, 2);// keyspace of destination
+								argList.add(4, 1);// keyspace of destination
 								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+prevNodeId+" to send its backup1 key space to "+newMemberHashId);
 								sendMerge = new DSocket(aliveMembers.get(prevNodeId+"").getAddress().getHostAddress(), aliveMembers.get(prevNodeId+"").getPort());
 								sendMerge.writeObjectList(argList);
@@ -503,7 +506,7 @@ public class FrontEnd implements Runnable{
 								DSLogger.logFE(this.getClass().getName(), "run","In step1 of crash handle");
 								
 								argList.clear();
-								argList.add(0, "sendKeysCrash"); //command
+								argList.add(0, "sendKeysCrash"); //command, clear the keyspace.
 								
 								argList.add(1, 2); //keyspace to send
 								argList.add(2, aliveMembers.get(machines.get(1))); //To
@@ -528,6 +531,7 @@ public class FrontEnd implements Runnable{
 								argList.add(1, 0); //keyspace to send
 								argList.add(2, aliveMembers.get(machines.get(0))); //To
 								argList.add(3, 1);// keyspace of destination
+								argList.add(4, 1);//whether to replace the destination map
 								
 								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(2)+" to send its primary key space to "+machines.get(0));
 								mem = aliveMembers.get(machines.get(2)+"");
@@ -543,11 +547,12 @@ public class FrontEnd implements Runnable{
 								DSLogger.logFE(this.getClass().getName(), "run","In step3 of crash handle");
 								
 								argList.clear();
-								argList.add(0, "sendKeys"); //command
+								argList.add(0, "sendKeys"); //command //replaceKeys
 								
 								argList.add(1, 1); //keyspace to send
 								argList.add(2, aliveMembers.get(machines.get(0))); //To
 								argList.add(3, 2);// keyspace of destination
+								argList.add(4, 1);// replace=true
 								
 								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(2)+" to send its backup1 key space to "+machines.get(0));
 								mem = aliveMembers.get(machines.get(2)+"");
@@ -569,6 +574,7 @@ public class FrontEnd implements Runnable{
 								argList.add(1, 0); //keyspace to send
 								argList.add(2, aliveMembers.get(machines.get(1))); //To
 								argList.add(3, 2);// keyspace of destination
+								argList.add(4, 1);// replace=true
 								
 								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(2)+" to send its primary key space to "+machines.get(1));
 								mem = aliveMembers.get(machines.get(2)+"");
@@ -589,6 +595,7 @@ public class FrontEnd implements Runnable{
 								argList.add(1, 0); //keyspace to send
 								argList.add(2, aliveMembers.get(machines.get(2))); //To
 								argList.add(3, 2);// keyspace of destination
+								argList.add(4, 1);// replace=true
 								
 								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(0)+" to send its primary key space to "+machines.get(2));
 								mem = aliveMembers.get(machines.get(0)+"");
@@ -602,22 +609,17 @@ public class FrontEnd implements Runnable{
 								DSLogger.logFE(this.getClass().getName(), "run","Failure handling done");
 							}else{
 								//CASE II Non neighboring nodes failed
+								
 								//Step 1
 								//TODO locally for machine 1 Primary = P+B1 before sending keys
-								//for machine 1 Replace Backup1 with backup2 
-								//for machine 1 send primary to machine 3
-								//for machine 3 - backup2 = primary received from machine 1
 								System.out.println("In Step1 of crash handle ");
 								DSLogger.logFE(this.getClass().getName(), "run","In Step1 of crash handle");
-								
 								argList.clear();
-								argList.add(0, "sendKeysCrashN"); //command
+								argList.add(0, "combine"); //command
+								argList.add(1, 0); //destination keyspace 
+								argList.add(2, 1); //key space to combine
 								
-								argList.add(1, 0); //keyspace to send
-								argList.add(2, aliveMembers.get(machines.get(1))); //To
-								argList.add(3, 2);// keyspace of destination
-								
-								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(0)+" to send its primary key space to "+machines.get(2));
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(0)+" to combine its primary key space to backup1");
 								Member mem = aliveMembers.get(machines.get(0)+"");
 								DSocket sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
 								sendMerge.writeObjectList(argList);
@@ -625,13 +627,74 @@ public class FrontEnd implements Runnable{
 								sendMerge.readObject();
 								sendMerge.close();
 								
-								//Step 2							
+								//Step 2
 								//TODO locally for machine 2 Primary = P+B1 before sending keys
-								//for machine 2 Replace Backup1 with backup2 
-								//for machine 2 send primary to machine 1
-								//for machine 1 - backup2 = primary received from machine 2
 								System.out.println("In Step2 of crash handle ");
 								DSLogger.logFE(this.getClass().getName(), "run","In Step2 of crash handle");
+								argList.clear();
+								argList.add(0, "combine"); //command
+								argList.add(1, 0); //destination keyspace 
+								argList.add(2, 1); //key space to combine
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(1)+" to combine its primary key space to backup1");
+								mem = aliveMembers.get(machines.get(1)+"");
+								sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();
+								
+								
+								
+								//Step 3
+								//TODO locally for machine 3 B1 = B1+B2 before sending keys
+								System.out.println("In Step3 of crash handle ");
+								DSLogger.logFE(this.getClass().getName(), "run","In Step3 of crash handle");
+								argList.clear();
+								argList.add(0, "combine"); //command
+								argList.add(1, 1); //destination keyspace 
+								argList.add(2, 2); //key space to combine
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(2)+" to combine its primary key space to backup1");
+								mem = aliveMembers.get(machines.get(2)+"");
+								sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();
+								
+								
+								
+								
+								//Step 4
+								//TODO locally for machine 1 Replace Backup1 with backup2 
+								//for machine 1 send primary to machine 3
+								//for machine 3 - backup2 = primary received from machine 1
+								System.out.println("In Step4 of crash handle ");
+								DSLogger.logFE(this.getClass().getName(), "run","In Step4 of crash handle");
+								
+								argList.clear();
+								
+								argList.add(0, "sendKeysCrashN"); //command
+								
+								argList.add(1, 0); //keyspace to send
+								argList.add(2, aliveMembers.get(machines.get(1))); //To
+								argList.add(3, 2);// keyspace of destination
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(0)+" to send its primary key space to "+machines.get(2));
+								mem = aliveMembers.get(machines.get(0)+"");
+								sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();
+								
+								//Step 5`							
+								//TODO for machine 2 Replace Backup1 with backup2 
+								//for machine 2 send primary to machine 1
+								//for machine 1 - backup2 = primary received from machine 2
+								System.out.println("In Step5 of crash handle ");
+								DSLogger.logFE(this.getClass().getName(), "run","In Step5 of crash handle");
 								
 								argList.clear();
 								argList.add(0, "sendKeysCrashN"); //command
@@ -649,19 +712,19 @@ public class FrontEnd implements Runnable{
 								sendMerge.close();
 								
 								
-								//Step 3
-								//TODO locally for machine 3 Backup1 = B1+B2
-								//for machine 3 send primary to machine 2
+								//Step 6
+								//TODO locally for machine 3 send primary to machine 2
 								//for machine 2 - backup2 = primary received from machine 3
-								System.out.println("In Step3 of crash handle ");
-								DSLogger.logFE(this.getClass().getName(), "run","In Step3 of crash handle");
+								System.out.println("In Step6 of crash handle ");
+								DSLogger.logFE(this.getClass().getName(), "run","In Step6 of crash handle");
 								
 								argList.clear();
-								argList.add(0, "sendKeysCrashN1"); //command
+								argList.add(0, "sendKeys"); //command
 								
 								argList.add(1, 0); //keyspace to send
 								argList.add(2, aliveMembers.get(machines.get(1))); //To
 								argList.add(3, 2);// keyspace of destination
+								argList.add(4, 1);// replace=true
 								
 								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(2)+" to send its primary key space to "+machines.get(1));
 								mem = aliveMembers.get(machines.get(2)+"");

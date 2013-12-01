@@ -18,6 +18,7 @@ import org.apache.commons.cli.PosixParser;
 import org.ds.hash.Hash;
 import org.ds.logger.DSLogger;
 import org.ds.networkConf.XmlParseUtility;
+import org.ds.server.KVStoreOperation.MapType;
 import org.ds.socket.DSocket;
 
 /**
@@ -130,7 +131,7 @@ public class NodeClient {
 			List<Map> mapList = (List<Map>) client.show();
 			int count = 0;
 			for (Map map : mapList) {
-				System.out.println("*******Displaying map number" + count);
+				System.out.println("*******Displaying map: " + MapType.values()[count]+" ***************"); 
 				count++;
 				Map<String, Object> objMap = (Map<String, Object>) map;
 				DSLogger.logAdmin("NodeClient", "main",

@@ -76,7 +76,10 @@ public class KeyValueStore implements Runnable {
 			break;
 		}
 		DSLogger.logAdmin("KeyValueStore", "performOperation",
-				"Entered performOperation to operate on the map:"+chosenType);
+				"Map type chosen for current operation:" + oper.getOperType()
+						+ " is:" + chosenType);
+		DSLogger.logAdmin("KeyValueStore", "performOperation",
+				"Entered performOperation to operate on the map:" + chosenType);
 		// DSLogger.logAdmin("KeyValueStore", "performOperation",
 		// chosenKeyValueStoreMap.toString());
 		Object retValue = null;
@@ -115,7 +118,17 @@ public class KeyValueStore implements Runnable {
 					"Deleting object for  key:" + oper.getKey());
 			chosenKeyValueStoreMap.remove(oper.getKey());
 			break;
-
+		case GET_MAP:
+			DSLogger.logFE("KeyValueStore", "performOperation",
+					"Getting the map:"+oper.getMapType());
+			Map<String, Object> newMap = new HashMap<String, Object>();
+			newMap.putAll(chosenKeyValueStoreMap);
+			try {
+					resultQueue.put(newMap);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			break;
 		case PARTITION:
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Partitioning key value store until key:" + oper.getKey());
@@ -129,11 +142,12 @@ public class KeyValueStore implements Runnable {
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Partitioning key value store in range :" + minNodeKey
 							+ " - " + maxNodeKey);
-			Map<String, Object> newMap = new HashMap<String, Object>();
+			newMap = new HashMap<String, Object>();
 			Set<String> origKeys = new HashSet<String>(
 					chosenKeyValueStoreMap.keySet());
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
-					"Original keyset of size:" + origKeys.size()+"  "+chosenKeyValueStoreMap);
+					"Original keyset of size:" + origKeys.size() + "  "
+							+ chosenKeyValueStoreMap);
 			// Collections.sort(new ArrayList<Integer>(origKeys));
 			Integer hashedKey = null;
 			for (String key : origKeys) {
@@ -175,7 +189,8 @@ public class KeyValueStore implements Runnable {
 			firstBackupKeyValueStore = newMap;
 			try {
 				DSLogger.logAdmin("KeyValueStore", "performOperation",
-						"Putting new hashmap of size:" + newMap.size()+" with map Values: "+newMap);
+						"Putting new hashmap of size:" + newMap.size()
+								+ " with map Values: " + newMap);
 				resultQueue.put(newMap);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -184,7 +199,7 @@ public class KeyValueStore implements Runnable {
 		case SEND_KEYS:
 			DSLogger.logFE("KeyValueStore", "performOperation",
 					"In Send_Keys, sending map:" + oper.getMapType());
-			Map<String, Object> mapSent = new HashMap<String, Object>();		
+			Map<String, Object> mapSent = new HashMap<String, Object>();
 			mapSent.putAll(chosenKeyValueStoreMap);
 			try {
 				resultQueue.put(mapSent);
@@ -208,8 +223,7 @@ public class KeyValueStore implements Runnable {
 																// backup1
 																// keyValue
 																// store.
-			 origKeys = new HashSet<String>(
-					chosenKeyValueStoreMap.keySet());
+			origKeys = new HashSet<String>(chosenKeyValueStoreMap.keySet());
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Original keyset of size:" + origKeys.size());
 			// Collections.sort(new ArrayList<Integer>(origKeys));
@@ -247,30 +261,34 @@ public class KeyValueStore implements Runnable {
 					}
 				}
 			}
-			secondBackupKeyValueStore=splitMap;
-			firstBackupKeyValueStore=chosenKeyValueStoreMap;
+			secondBackupKeyValueStore = splitMap;
+			firstBackupKeyValueStore = chosenKeyValueStoreMap;
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			break;
-			
-		case SPLIT_BACKUP_TWO: //For 3 nodes ahead of the  node which joined,split backup2 map according to new node joined.
+
+		case SPLIT_BACKUP_TWO: // For 3 nodes ahead of the node which
+								// joined,split backup2 map according to new
+								// node joined.
 			DSLogger.logFE("KeyValueStore", "performOperation",
 					"Splitting backup2 value store until key:" + oper.getKey());
-			minNodeKey = Integer.parseInt(oper.getKey()); //New node
-			maxNodeKey = Integer.parseInt(((String) (oper.getValue()))); // Next to new node
+			minNodeKey = Integer.parseInt(oper.getKey()); // New node
+			maxNodeKey = Integer.parseInt(((String) (oper.getValue()))); // Next
+																			// to
+																			// new
+																			// node
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Partitioning key value store in range :" + minNodeKey
 							+ " - " + maxNodeKey);
-			 splitMap = new HashMap<String, Object>();
+			splitMap = new HashMap<String, Object>();
 			chosenKeyValueStoreMap = secondBackupKeyValueStore;// Split the
 																// backup1
 																// keyValue
 																// store.
-			 origKeys = new HashSet<String>(
-					chosenKeyValueStoreMap.keySet());
+			origKeys = new HashSet<String>(chosenKeyValueStoreMap.keySet());
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Original keyset of size:" + origKeys.size());
 			// Collections.sort(new ArrayList<Integer>(origKeys));
@@ -308,7 +326,7 @@ public class KeyValueStore implements Runnable {
 					}
 				}
 			}
-			secondBackupKeyValueStore=chosenKeyValueStoreMap;			
+			secondBackupKeyValueStore = chosenKeyValueStoreMap;
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
@@ -334,9 +352,52 @@ public class KeyValueStore implements Runnable {
 
 		case MERGE:
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
-					"Merging map received from previous node");
-			Map<String, Object> mapToBeMerged = oper.getMapToBeMerged();		
+					"Merging map received from a node");
+			Map<String, Object> mapToBeMerged = oper.getMapToBeMerged();
 			chosenKeyValueStoreMap.putAll(mapToBeMerged);
+			try {
+				resultQueue.put("ack");
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		case MERGE_LOCAL:
+			DSLogger.logAdmin("KeyValueStore", "performOperation",
+					"Merging map locally from a node");
+			String mapNumberForMerge=oper.getKey();
+			mapToBeMerged=null;
+			if(mapNumberForMerge.equals("0")){
+				mapToBeMerged=primaryKeyValueStoreMap;
+			}
+			else if (mapNumberForMerge.equals("1")){
+				mapToBeMerged=firstBackupKeyValueStore;
+			}
+			else if (mapNumberForMerge.equals("2")){
+				mapToBeMerged=secondBackupKeyValueStore;
+			}
+			chosenKeyValueStoreMap.putAll(mapToBeMerged);
+			try {
+				resultQueue.put("ack");
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			break;
+		case CRASH_RECOVERY_NON_SEQ:
+			DSLogger.logAdmin("KeyValueStore", "performOperation",
+					"Performing crash recovery from non-sequential crashes");
+			firstBackupKeyValueStore=secondBackupKeyValueStore;
+			try {
+				resultQueue.put("ack");
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			break;
+		case REPLACE:
+			DSLogger.logAdmin("KeyValueStore", "performOperation",
+					"Replacing map received from another node");
+			Map<String, Object> mapToBeReplaced = oper.getMapToBeMerged();
+			chosenKeyValueStoreMap = mapToBeReplaced;
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
@@ -355,9 +416,17 @@ public class KeyValueStore implements Runnable {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-
 			break;
-		// return retValue;
+		case CRASH_RECOVERY:
+			chosenKeyValueStoreMap.putAll(firstBackupKeyValueStore);
+			chosenKeyValueStoreMap.putAll(secondBackupKeyValueStore);
+			try {
+				resultQueue.put("ack");
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
 		}
 	}
 }
