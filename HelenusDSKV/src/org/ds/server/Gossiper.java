@@ -34,6 +34,7 @@ public class Gossiper implements Runnable{
 	private DatagramSocket socket;
 	private ArrayList<String> keysToRemove;
 	private boolean frontEnd;
+	private boolean crashDetected;
 	
 	public Gossiper(HashMap<String, Member> aliveMembers, HashMap<String, Member> deadMembers, Object lockUpdateMember, Member itself){
 		this.aliveMembers = aliveMembers;
@@ -41,6 +42,7 @@ public class Gossiper implements Runnable{
 		this.lockUpdateMember = lockUpdateMember;
 		this.itself = itself;
 		frontEnd = false;
+		crashDetected = false;
 		//this.socket = socket;
 	}
 	
@@ -78,7 +80,7 @@ public class Gossiper implements Runnable{
 					System.out.println(aMember.getIdentifier()+" timed out after "+aMember.getHeartBeat());
 					keysToRemove.add(aMember.getIdentifier());
 					deadMembers.put(aMember.getIdentifier(), aMember);
-					if(deadMembers.size()>1 && frontEnd){
+					if(!crashDetected && deadMembers.size()>1 && frontEnd){
 						System.out.println("Simultaneous failure detected on front End ");
 						DSLogger.logFE(this.getClass().getName(), "run","Simultaneous failures detected");
 						DSLogger.logFE(this.getClass().getName(), "run","Dead member set : "+deadMembers);
@@ -92,6 +94,7 @@ public class Gossiper implements Runnable{
 							DSocket sendCrash = new DSocket(contactMachineIP, 4000);
 							sendCrash.writeObjectList(objList);
 							sendCrash.close();
+							crashDetected = true;
 						} catch (UnknownHostException e) {
 							DSLogger.logFE("Gossiper", "run", e.getMessage());
 							e.printStackTrace();
