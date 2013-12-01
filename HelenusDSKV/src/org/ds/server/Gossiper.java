@@ -5,14 +5,18 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
 import org.ds.logger.DSLogger;
 import org.ds.member.Member;
+import org.ds.networkConf.XmlParseUtility;
+import org.ds.socket.DSocket;
 
 /**
  * @author pjain11, mallapu2
@@ -64,6 +68,26 @@ public class Gossiper implements Runnable{
 					System.out.println(aMember.getIdentifier()+" timed out after "+aMember.getHeartBeat());
 					keysToRemove.add(aMember.getIdentifier());
 					deadMembers.put(aMember.getIdentifier(), aMember);
+					if(deadMembers.size()>1){
+						DSLogger.logFE(this.getClass().getName(), "run","Simultaneous failures detected");
+						DSLogger.logFE(this.getClass().getName(), "run","Dead member set : "+deadMembers);
+						DSLogger.logFE(this.getClass().getName(), "run","Alive member set : "+aliveMembers);
+						List<Object> objList = new ArrayList<Object>();
+						objList.add(new String("crash"));
+						String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
+						String contactMachineIP = contactMachineAddr.split(":")[0];
+						try {
+							DSocket sendCrash = new DSocket(contactMachineIP, 4000);
+							sendCrash.writeObjectList(objList);
+							sendCrash.close();
+						} catch (UnknownHostException e) {
+							DSLogger.logFE("Gossiper", "run", e.getMessage());
+							e.printStackTrace();
+						} catch (IOException e) {
+							DSLogger.logFE("Gossiper", "run", e.getMessage());
+							e.printStackTrace();
+						}
+					}
 					DSLogger.report(aMember.getIdentifier()," added to dead list");
 				}
 			}

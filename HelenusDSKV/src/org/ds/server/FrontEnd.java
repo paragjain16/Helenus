@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -34,6 +35,7 @@ public class FrontEnd implements Runnable{
 	private ServerSocket serverSocket;
 	private DSocket socket;
 	private TreeMap<Integer, Member> sortedAliveMembers;
+	private TreeMap<Integer, Member> sortedDeadMembers;
 	private Object lock;
 	private Member itself;
 	
@@ -61,7 +63,7 @@ public class FrontEnd implements Runnable{
 						System.out.println("Waiting for command");
 						DSLogger.logFE("FrontEnd","run","Listening to commands");
 						Socket normalSocket = serverSocket.accept();
-						socket = new DSocket(normalSocket);
+						socket = new DSocket(normalSocket);						
 						System.out.println("Accepted request from "+socket.getSocket().getRemoteSocketAddress());
 						DSLogger.logFE("FrontEnd","run","Accepted request from "+socket.getSocket().getRemoteSocketAddress());
 						List<Object> argList = (ArrayList<Object>)socket.readObject();
@@ -83,8 +85,7 @@ public class FrontEnd implements Runnable{
 								sortedAliveMembers = this.constructSortedMap(aliveMembers);
 								DSLogger.logFE(this.getClass().getName(), "run","Sorted Map :"+sortedAliveMembers);
 							}
-							DSLogger.logFE(this.getClass().getName(), "run","Trying to join client: "+newMemberHashId);
-							
+							DSLogger.logFE(this.getClass().getName(), "run","Trying to join client: "+newMemberHashId);							
 							
 							DSLogger.logFE(this.getClass().getName(), "run","Contacting : "+itself.getAddress().getHostAddress()+":"+itself.getPort());
 							
@@ -203,22 +204,7 @@ public class FrontEnd implements Runnable{
 							//3 - ALL
 							Integer consistencyLevel = (Integer)argList.get(1);
 							
-							DSLogger.logFE(this.getClass().getName(), "run","Received parameters : Key, Value, CL "+key+":"+value+":"+consistencyLevel);
-							//int count = 1;
-							/*switch(consistencyLevel){
-							case 0:
-								count = 1;
-								break;
-							case 1:
-								count = 2;
-								break;
-							case 2:
-								count = 3;
-								break;
-							default:
-								count = 1;
-							}*/
-							
+							DSLogger.logFE(this.getClass().getName(), "run","Received parameters : Key, Value, CL "+key+":"+value+":"+consistencyLevel);							
 							
 							DSLogger.logFE(this.getClass().getName(), "run","Received put request from "+socket.getSocket().getRemoteSocketAddress());
 							Integer primayReplica = -1;
@@ -302,22 +288,7 @@ public class FrontEnd implements Runnable{
 							//3 - ALL
 							Integer consistencyLevel = (Integer)argList.get(1);
 							
-							DSLogger.logFE(this.getClass().getName(), "run","Received parameters : Key, Value, CL "+key+":"+value+":"+consistencyLevel);
-							//int count = 1;
-							/*switch(consistencyLevel){
-							case 0:
-								count = 1;
-								break;
-							case 1:
-								count = 2;
-								break;
-							case 2:
-								count = 3;
-								break;
-							default:
-								count = 1;
-							}*/
-							
+							DSLogger.logFE(this.getClass().getName(), "run","Received parameters : Key, Value, CL "+key+":"+value+":"+consistencyLevel);						
 							
 							DSLogger.logFE(this.getClass().getName(), "run","Received update request from "+socket.getSocket().getRemoteSocketAddress());
 							Integer primayReplica = -1;
@@ -402,22 +373,7 @@ public class FrontEnd implements Runnable{
 							Integer consistencyLevel = (Integer)argList.get(1);
 							
 							DSLogger.logFE(this.getClass().getName(), "run","Received parameters : Key, CL "+key+":"+consistencyLevel);
-							//int count = 1;
-							/*switch(consistencyLevel){
-							case 0:
-								count = 1;
-								break;
-							case 1:
-								count = 2;
-								break;
-							case 2:
-								count = 3;
-								break;
-							default:
-								count = 1;
-							}*/
-							
-							
+
 							DSLogger.logFE(this.getClass().getName(), "run","Received delete request from "+socket.getSocket().getRemoteSocketAddress());
 							Integer primayReplica = -1;
 							if(sortedAliveMembers.containsKey(hashedKey)){
@@ -485,12 +441,244 @@ public class FrontEnd implements Runnable{
 							socket.close();
 							DSLogger.logFE(this.getClass().getName(), "run","Exiting");
 						}
+						else if(cmd.equals("crash")){
+							DSLogger.logFE(this.getClass().getName(), "run","Starting crash recovery");
+							synchronized (lock) {
+								sortedDeadMembers = this.constructSortedMap(deadMembers);
+								sortedAliveMembers = this.constructSortedMap(aliveMembers);
+								DSLogger.logFE(this.getClass().getName(), "run","Sorted Dead member set : "+sortedDeadMembers);
+								DSLogger.logFE(this.getClass().getName(), "run","Sorted Alive member set : "+sortedAliveMembers);
+							}
+							Set<Integer> deadSet = sortedDeadMembers.keySet();
+							boolean sequentialFailure =false;
+							ArrayList<Integer> nextToFailure= new ArrayList<Integer>();
+							ArrayList<Integer> machines = new ArrayList<Integer>();
+							Integer nextMachineId = -1;
+							for(Integer i: deadSet){
+								nextToFailure.add(sortedAliveMembers.higherKey(i)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(i));
+								nextMachineId = i;
+							}
+							if(nextToFailure.get(0)==nextToFailure.get(1)){
+								sequentialFailure = true;
+							}
+							System.out.println(nextToFailure);
+							System.out.println(nextMachineId);
+							
+							//Two machines failed sequentially
+							int i=0;
+							if(sequentialFailure){
+								DSLogger.logFE(this.getClass().getName(), "run","Two neighboring machines failed ");
+								while(i<3){
+									nextMachineId = sortedAliveMembers.higherKey(nextMachineId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(nextMachineId);
+									machines.add(i++, nextMachineId);
+									DSLogger.logFE(this.getClass().getName(), "run","Machine "+i+" in Sequential order is : "+nextMachineId);
+								}
+							}else{
+								DSLogger.logFE(this.getClass().getName(), "run","Two non neighboring machines failed ");
+								Integer firstMachine =-1;
+								if(nextToFailure.get(1)==(sortedAliveMembers.higherKey(nextToFailure.get(0))==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(nextToFailure.get(0)))){
+									firstMachine = nextToFailure.get(0);
+								}else{
+									firstMachine = nextToFailure.get(1);
+								}
+								nextMachineId = firstMachine;
+								machines.add(i++, nextMachineId);
+								DSLogger.logFE(this.getClass().getName(), "run","Machine "+i+" in Sequential order are : "+nextMachineId);
+								while(i<3){
+									nextMachineId = sortedAliveMembers.higherKey(nextMachineId)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(nextMachineId);
+									machines.add(i++, nextMachineId);
+									DSLogger.logFE(this.getClass().getName(), "run","Machine "+i+" in Sequential order are : "+nextMachineId);
+								}
+							}
+							
+							//Perform actions to handle crash, there are two cases- 
+							//CASE I Neighboring nodes fails
+							
+							if(sequentialFailure){
+								//Step 1
+								//TODO locally for machine 1 Primary = P+B1+B2 before sending keys
+								//Transfer Backup2 from machine 1 to machine 2
+								//for machine 2 - backup1 = backup1+backup2+received keys from machine1
+								System.out.println("In step1 of crash handle");
+								DSLogger.logFE(this.getClass().getName(), "run","In step1 of crash handle");
+								
+								argList.clear();
+								argList.add(0, "sendKeysCrash"); //command
+								
+								argList.add(1, 2); //keyspace to send
+								argList.add(2, aliveMembers.get(machines.get(1))); //To
+								argList.add(3, 1);// keyspace of destination
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(0)+" to send its backup2 key space to "+machines.get(1));
+								Member mem = aliveMembers.get(machines.get(0)+"");
+								DSocket sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();	
+								
+								//Step 2
+								//Send primary from machine 3 to machine 1 and it will become backup 1
+								System.out.println("In step2 of crash handle");
+								DSLogger.logFE(this.getClass().getName(), "run","In step2 of crash handle");
+								
+								argList.clear();
+								argList.add(0, "sendKeys"); //command
+								
+								argList.add(1, 0); //keyspace to send
+								argList.add(2, aliveMembers.get(machines.get(0))); //To
+								argList.add(3, 1);// keyspace of destination
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(2)+" to send its primary key space to "+machines.get(0));
+								mem = aliveMembers.get(machines.get(2)+"");
+								sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();	
+								
+								//Step 3
+								//Send backup1 from machine 3 to machine 1 and it will become backup 2
+								System.out.println("In step3 of crash handle");
+								DSLogger.logFE(this.getClass().getName(), "run","In step3 of crash handle");
+								
+								argList.clear();
+								argList.add(0, "sendKeys"); //command
+								
+								argList.add(1, 1); //keyspace to send
+								argList.add(2, aliveMembers.get(machines.get(0))); //To
+								argList.add(3, 2);// keyspace of destination
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(2)+" to send its backup1 key space to "+machines.get(0));
+								mem = aliveMembers.get(machines.get(2)+"");
+								sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();	
+								
+								
+								//Step 4
+								//Send primary from machine 3 to machine 2 and it will become backup 2
+								System.out.println("In step4 of crash handle");
+								DSLogger.logFE(this.getClass().getName(), "run","In step4 of crash handle");
+								
+								argList.clear();
+								argList.add(0, "sendKeys"); //command
+								
+								argList.add(1, 0); //keyspace to send
+								argList.add(2, aliveMembers.get(machines.get(1))); //To
+								argList.add(3, 2);// keyspace of destination
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(2)+" to send its primary key space to "+machines.get(1));
+								mem = aliveMembers.get(machines.get(2)+"");
+								sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();
+								
+								//Step 5
+								//Send primary from machine 1 to machine 3 and it will become backup 2
+								System.out.println("In step5 of crash handle");
+								DSLogger.logFE(this.getClass().getName(), "run","In step5 of crash handle");
+								
+								argList.clear();
+								argList.add(0, "sendKeys"); //command
+								
+								argList.add(1, 0); //keyspace to send
+								argList.add(2, aliveMembers.get(machines.get(2))); //To
+								argList.add(3, 2);// keyspace of destination
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(0)+" to send its primary key space to "+machines.get(2));
+								mem = aliveMembers.get(machines.get(0)+"");
+								sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();	
+								
+								System.out.println("Failure handling done");
+								DSLogger.logFE(this.getClass().getName(), "run","Failure handling done");
+							}else{
+								//CASE II Non neighboring nodes failed
+								//Step 1
+								//TODO locally for machine 1 Primary = P+B1 before sending keys
+								//for machine 1 Replace Backup1 with backup2 
+								//for machine 1 send primary to machine 3
+								//for machine 3 - backup2 = primary received from machine 1
+								System.out.println("In Step1 of crash handle ");
+								DSLogger.logFE(this.getClass().getName(), "run","In Step1 of crash handle");
+								
+								argList.clear();
+								argList.add(0, "sendKeysCrashN"); //command
+								
+								argList.add(1, 0); //keyspace to send
+								argList.add(2, aliveMembers.get(machines.get(1))); //To
+								argList.add(3, 2);// keyspace of destination
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(0)+" to send its primary key space to "+machines.get(2));
+								Member mem = aliveMembers.get(machines.get(0)+"");
+								DSocket sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();
+								
+								//Step 2							
+								//TODO locally for machine 2 Primary = P+B1 before sending keys
+								//for machine 2 Replace Backup1 with backup2 
+								//for machine 2 send primary to machine 1
+								//for machine 1 - backup2 = primary received from machine 2
+								System.out.println("In Step2 of crash handle ");
+								DSLogger.logFE(this.getClass().getName(), "run","In Step2 of crash handle");
+								
+								argList.clear();
+								argList.add(0, "sendKeysCrashN"); //command
+								
+								argList.add(1, 0); //keyspace to send
+								argList.add(2, aliveMembers.get(machines.get(0))); //To
+								argList.add(3, 2);// keyspace of destination
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(1)+" to send its primary key space to "+machines.get(0));
+								mem = aliveMembers.get(machines.get(1)+"");
+								sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();
+								
+								
+								//Step 3
+								//TODO locally for machine 3 Backup1 = B1+B2
+								//for machine 3 send primary to machine 2
+								//for machine 2 - backup2 = primary received from machine 3
+								System.out.println("In Step3 of crash handle ");
+								DSLogger.logFE(this.getClass().getName(), "run","In Step3 of crash handle");
+								
+								argList.clear();
+								argList.add(0, "sendKeysCrashN1"); //command
+								
+								argList.add(1, 0); //keyspace to send
+								argList.add(2, aliveMembers.get(machines.get(1))); //To
+								argList.add(3, 2);// keyspace of destination
+								
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(2)+" to send its primary key space to "+machines.get(1));
+								mem = aliveMembers.get(machines.get(2)+"");
+								sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();
+							}
+							
+						}
 					
 				} catch (IOException e) {
 					DSLogger.logFE("FrontEnd","run",e.getMessage());
 					e.printStackTrace();
 				}
-				}
+			}
 	}
 	public TreeMap<Integer, Member> constructSortedMap(HashMap<String, Member> map){	
 		sortedAliveMembers = new TreeMap<Integer, Member>();
