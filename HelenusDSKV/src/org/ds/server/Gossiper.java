@@ -78,8 +78,8 @@ public class Gossiper implements Runnable{
 					System.out.println(aMember.getIdentifier()+" timed out after "+aMember.getHeartBeat());
 					keysToRemove.add(aMember.getIdentifier());
 					deadMembers.put(aMember.getIdentifier(), aMember);
-					if(deadMembers.size()>1 ){
-						System.out.println("Simultaneous failure detected");
+					if(deadMembers.size()>1 && frontEnd){
+						System.out.println("Simultaneous failure detected on front End ");
 						DSLogger.logFE(this.getClass().getName(), "run","Simultaneous failures detected");
 						DSLogger.logFE(this.getClass().getName(), "run","Dead member set : "+deadMembers);
 						DSLogger.logFE(this.getClass().getName(), "run","Alive member set : "+aliveMembers);

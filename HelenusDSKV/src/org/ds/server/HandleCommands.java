@@ -473,9 +473,9 @@ public class HandleCommands implements Runnable {
 				sendMerge.readObject();
 				sendMerge.close();
 
-			//	ack = (String) resultQueue.take();
+				String ack = (String) resultQueue.take();
 
-				//socket.writeObject(ack);
+				socket.writeObject(ack);
 
 			}
 			
