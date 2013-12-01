@@ -105,6 +105,7 @@ public class Node {
 			node.frontEnd = new FrontEnd(node.aliveMembers, node.deadMembers, node.lockUpdateMember, node.itself);
 			Thread frontEnd = new Thread(node.frontEnd);
 			frontEnd.start();
+			node.gossiper.setFrontEnd(true);
 		}
 		node.listenToCommands();
 		

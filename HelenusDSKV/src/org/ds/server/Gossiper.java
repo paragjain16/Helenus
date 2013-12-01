@@ -33,15 +33,25 @@ public class Gossiper implements Runnable{
 	private ArrayList<Member> memberList;
 	private DatagramSocket socket;
 	private ArrayList<String> keysToRemove;
+	private boolean frontEnd;
 	
 	public Gossiper(HashMap<String, Member> aliveMembers, HashMap<String, Member> deadMembers, Object lockUpdateMember, Member itself){
 		this.aliveMembers = aliveMembers;
 		this.deadMembers = deadMembers;
 		this.lockUpdateMember = lockUpdateMember;
 		this.itself = itself;
+		frontEnd = false;
 		//this.socket = socket;
 	}
 	
+	public boolean isFrontEnd() {
+		return frontEnd;
+	}
+
+	public void setFrontEnd(boolean frontEnd) {
+		this.frontEnd = frontEnd;
+	}
+
 	public void run(){	
 		DSLogger.log("Gossiper", "run", "Entered");
 		
@@ -68,12 +78,14 @@ public class Gossiper implements Runnable{
 					System.out.println(aMember.getIdentifier()+" timed out after "+aMember.getHeartBeat());
 					keysToRemove.add(aMember.getIdentifier());
 					deadMembers.put(aMember.getIdentifier(), aMember);
-					if(deadMembers.size()>1){
+					if(deadMembers.size()>1 ){
+						System.out.println("Simultaneous failure detected");
 						DSLogger.logFE(this.getClass().getName(), "run","Simultaneous failures detected");
 						DSLogger.logFE(this.getClass().getName(), "run","Dead member set : "+deadMembers);
 						DSLogger.logFE(this.getClass().getName(), "run","Alive member set : "+aliveMembers);
 						List<Object> objList = new ArrayList<Object>();
 						objList.add(new String("crash"));
+						//objList.add(deadMembers);
 						String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
 						String contactMachineIP = contactMachineAddr.split(":")[0];
 						try {

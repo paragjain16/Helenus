@@ -446,6 +446,15 @@ public class FrontEnd implements Runnable{
 						}
 						else if(cmd.equals("crash")){
 							DSLogger.logFE(this.getClass().getName(), "run","Starting crash recovery");
+							
+							// wait for dead member list to update
+							try {
+								Thread.sleep(1500);
+							} catch (InterruptedException e) {
+								DSLogger.logFE(this.getClass().getName(), "run",e.getMessage());
+								e.printStackTrace();
+							}
+							System.out.println("Starting crash recovery");
 							synchronized (lock) {
 								sortedDeadMembers = this.constructSortedMap(deadMembers);
 								sortedAliveMembers = this.constructSortedMap(aliveMembers);
