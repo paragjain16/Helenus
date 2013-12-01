@@ -81,6 +81,7 @@ public class Gossiper implements Runnable{
 					keysToRemove.add(aMember.getIdentifier());
 					deadMembers.put(aMember.getIdentifier(), aMember);
 					if(!crashDetected && deadMembers.size()>1 && frontEnd){
+						crashDetected = true;
 						System.out.println("Simultaneous failure detected on front End ");
 						DSLogger.logFE(this.getClass().getName(), "run","Simultaneous failures detected");
 						DSLogger.logFE(this.getClass().getName(), "run","Dead member set : "+deadMembers);
@@ -93,8 +94,7 @@ public class Gossiper implements Runnable{
 						try {
 							DSocket sendCrash = new DSocket(contactMachineIP, 4000);
 							sendCrash.writeObjectList(objList);
-							sendCrash.close();
-							crashDetected = true;
+							sendCrash.close();				
 						} catch (UnknownHostException e) {
 							DSLogger.logFE("Gossiper", "run", e.getMessage());
 							e.printStackTrace();
