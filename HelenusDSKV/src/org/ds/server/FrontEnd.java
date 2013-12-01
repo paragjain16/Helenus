@@ -451,7 +451,7 @@ public class FrontEnd implements Runnable{
 							try {
 								Thread.sleep(1500);
 							} catch (InterruptedException e) {
-								DSLogger.logFE(this.getClass().getName(), "run",e.getMessage());
+								DSLogger.logFE(this.getClass().getName(), "run","Problem while waiting"+e.getMessage());
 								e.printStackTrace();
 							}
 							System.out.println("Starting crash recovery");
@@ -502,7 +502,7 @@ public class FrontEnd implements Runnable{
 									DSLogger.logFE(this.getClass().getName(), "run","Machine "+i+" in Sequential order are : "+nextMachineId);
 								}
 							}
-							
+							System.out.println("Running machines are "+machines);
 							//Perform actions to handle crash, there are two cases- 
 							//CASE I Neighboring nodes fails
 							
@@ -518,7 +518,7 @@ public class FrontEnd implements Runnable{
 								argList.add(0, "sendKeysCrash"); //command, clear the keyspace.
 								
 								argList.add(1, 2); //keyspace to send
-								argList.add(2, aliveMembers.get(machines.get(1))); //To
+								argList.add(2, aliveMembers.get(machines.get(1)+"")); //To
 								argList.add(3, 1);// keyspace of destination
 								
 								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(0)+" to send its backup2 key space to "+machines.get(1));
@@ -538,7 +538,7 @@ public class FrontEnd implements Runnable{
 								argList.add(0, "sendKeys"); //command
 								
 								argList.add(1, 0); //keyspace to send
-								argList.add(2, aliveMembers.get(machines.get(0))); //To
+								argList.add(2, aliveMembers.get(machines.get(0)+"")); //To
 								argList.add(3, 1);// keyspace of destination
 								argList.add(4, 1);//whether to replace the destination map
 								
@@ -559,7 +559,7 @@ public class FrontEnd implements Runnable{
 								argList.add(0, "sendKeys"); //command //replaceKeys
 								
 								argList.add(1, 1); //keyspace to send
-								argList.add(2, aliveMembers.get(machines.get(0))); //To
+								argList.add(2, aliveMembers.get(machines.get(0)+"")); //To
 								argList.add(3, 2);// keyspace of destination
 								argList.add(4, 1);// replace=true
 								
@@ -581,7 +581,7 @@ public class FrontEnd implements Runnable{
 								argList.add(0, "sendKeys"); //command
 								
 								argList.add(1, 0); //keyspace to send
-								argList.add(2, aliveMembers.get(machines.get(1))); //To
+								argList.add(2, aliveMembers.get(machines.get(1)+"")); //To
 								argList.add(3, 2);// keyspace of destination
 								argList.add(4, 1);// replace=true
 								
@@ -602,7 +602,7 @@ public class FrontEnd implements Runnable{
 								argList.add(0, "sendKeys"); //command
 								
 								argList.add(1, 0); //keyspace to send
-								argList.add(2, aliveMembers.get(machines.get(2))); //To
+								argList.add(2, aliveMembers.get(machines.get(2)+"")); //To
 								argList.add(3, 2);// keyspace of destination
 								argList.add(4, 1);// replace=true
 								
@@ -687,7 +687,7 @@ public class FrontEnd implements Runnable{
 								argList.add(0, "sendKeysCrashN"); //command
 								
 								argList.add(1, 0); //keyspace to send
-								argList.add(2, aliveMembers.get(machines.get(1))); //To
+								argList.add(2, aliveMembers.get(machines.get(1)+"")); //To
 								argList.add(3, 2);// keyspace of destination
 								
 								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(0)+" to send its primary key space to "+machines.get(2));
@@ -709,7 +709,7 @@ public class FrontEnd implements Runnable{
 								argList.add(0, "sendKeysCrashN"); //command
 								
 								argList.add(1, 0); //keyspace to send
-								argList.add(2, aliveMembers.get(machines.get(0))); //To
+								argList.add(2, aliveMembers.get(machines.get(0)+"")); //To
 								argList.add(3, 2);// keyspace of destination
 								
 								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(1)+" to send its primary key space to "+machines.get(0));
@@ -731,7 +731,7 @@ public class FrontEnd implements Runnable{
 								argList.add(0, "sendKeys"); //command
 								
 								argList.add(1, 0); //keyspace to send
-								argList.add(2, aliveMembers.get(machines.get(1))); //To
+								argList.add(2, aliveMembers.get(machines.get(1)+"")); //To
 								argList.add(3, 2);// keyspace of destination
 								argList.add(4, 1);// replace=true
 								
@@ -747,7 +747,7 @@ public class FrontEnd implements Runnable{
 						}
 					
 				} catch (IOException e) {
-					DSLogger.logFE("FrontEnd","run",e.getMessage());
+					DSLogger.logFE("FrontEnd","run","In exception "+e.getMessage());
 					e.printStackTrace();
 				}
 			}
