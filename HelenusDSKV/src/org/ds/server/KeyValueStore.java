@@ -399,7 +399,8 @@ public class KeyValueStore implements Runnable {
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Replacing map:"+ oper.getMapType()+"with the map received from another node:"+mapToBeReplaced);
 			System.out.println("Replacing map:"+ oper.getMapType()+"with the map received from another node:"+mapToBeReplaced);
-			chosenKeyValueStoreMap = mapToBeReplaced;
+			chosenKeyValueStoreMap .clear();
+			chosenKeyValueStoreMap.putAll(mapToBeReplaced);
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
