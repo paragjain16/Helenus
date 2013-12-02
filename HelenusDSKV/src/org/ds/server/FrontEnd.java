@@ -525,8 +525,11 @@ public class FrontEnd implements Runnable{
 								Member mem = aliveMembers.get(machines.get(0)+"");
 								DSocket sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
 								sendMerge.writeObjectList(argList);
+								System.out.println("Waiting for ack on "+sendMerge.getSocket()+" "+sendMerge.getSocket().getPort());
 								//consume ack
-								sendMerge.readObject();
+								Object ack = sendMerge.readObject();
+								System.out.println(ack);
+								System.out.println("Ack recieved");
 								sendMerge.close();	
 								
 								//Step 2

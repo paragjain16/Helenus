@@ -264,8 +264,7 @@ public class HandleCommands implements Runnable {
 			}
 			// tells this node to merge the received key list to its key space
 			else if (cmd.equals("merge")) {
-				HashMap<String, Object> recievedKeys = (HashMap<String, Object>) argList
-						.get(1);
+				HashMap<String, Object> recievedKeys = (HashMap<String, Object>) argList.get(1);
 				Integer mapNumber = (Integer) argList.get(2);
 				MapType mapType = MapType.values()[mapNumber]; // map to be
 																// merged
@@ -384,11 +383,12 @@ public class HandleCommands implements Runnable {
 				sendMerge.writeObjectList(objList);
 
 				// Consuming the acknowledgment send by merging node
+				System.out.println("Waiting for ack from merging node in send keys crash");
 				sendMerge.readObject();
 				sendMerge.close();
-
+				System.out.println("Received ack from merging node in send keys crash");
 				ack = (String) resultQueue.take();
-
+				System.out.println("Writing ack in send keys crash to "+socket.getSocket()+" "+socket.getSocket().getPort());
 				socket.writeObject(ack);
 
 			} 
@@ -510,7 +510,9 @@ public class HandleCommands implements Runnable {
 					DSLogger.logAdmin("HandleCommand", "run",
 							"In merge request got " + ack);
 				}				
+				System.out.println("Writing ack to"+socket.getSocket()+" "+socket.getSocket().getPort());
 				socket.writeObject("ack");
+				System.out.println("Writing done");
 
 			} else if (cmd.equals("splitBackup2")) { // required for 3 nodes
 														// ahead of new node
