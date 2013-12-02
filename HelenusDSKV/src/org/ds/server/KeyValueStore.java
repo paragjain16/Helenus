@@ -375,7 +375,10 @@ public class KeyValueStore implements Runnable {
 			else if (mapNumberForMerge.equals("2")){
 				mapToBeMerged=secondBackupKeyValueStore;
 			}
+			System.out.println("Inside merge_local: original map of type: "+oper.getMapType()+" has values: "+chosenKeyValueStoreMap);
+			System.out.println("Inside merge_local: map to be merged of mapnumber: "+mapToBeMerged+" has values: "+mapToBeMerged);
 			chosenKeyValueStoreMap.putAll(mapToBeMerged);
+			System.out.println("Inside merge_local:After merge of local maps final map: has values: "+chosenKeyValueStoreMap);
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
