@@ -288,16 +288,16 @@ public class HandleCommands implements Runnable {
 				Integer mapNumber = (Integer) argList.get(2);
 				MapType mapType = MapType.values()[mapNumber]; // map to be
 																// merged
-				DSLogger.logAdmin("HandleCommand", "run", "In merge request");
+				DSLogger.logAdmin("HandleCommand", "run", "In replace request");
 				KVStoreOperation operation = new KVStoreOperation(recievedKeys,
-						KVStoreOperation.OperationType.MERGE, mapType);
+						KVStoreOperation.OperationType.REPLACE, mapType);
 
 				operationQueue.put(operation);
 				DSLogger.logAdmin("HandleCommand", "run",
-						"In merge request waiting for ack");
+						"In replace request waiting for ack");
 				String ack = (String) resultQueue.take();
 				DSLogger.logAdmin("HandleCommand", "run",
-						"In merge request got " + ack);
+						"In replace request got " + ack);
 				socket.writeObject(ack);
 			} else if (cmd.equals("sendKeys")) {
 				Integer mapNumber = (Integer) argList.get(1);
