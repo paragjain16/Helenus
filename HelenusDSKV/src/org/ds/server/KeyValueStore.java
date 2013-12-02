@@ -358,14 +358,13 @@ public class KeyValueStore implements Runnable {
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			break;
 		case MERGE_LOCAL:
-			DSLogger.logAdmin("KeyValueStore", "performOperation",
-					"Merging map locally from a node");
 			String mapNumberForMerge=oper.getKey();
+			DSLogger.logFE("KeyValueStore", "performOperation",
+					"Merging map "+oper.getMapType()+" with local map number:"+mapNumberForMerge);
 			mapToBeMerged=null;
 			if(mapNumberForMerge.equals("0")){
 				mapToBeMerged=primaryKeyValueStoreMap;
@@ -384,7 +383,7 @@ public class KeyValueStore implements Runnable {
 			}
 			break;
 		case CRASH_RECOVERY_NON_SEQ:
-			DSLogger.logAdmin("KeyValueStore", "performOperation",
+			DSLogger.logFE("KeyValueStore", "performOperation",
 					"Performing crash recovery from non-sequential crashes");
 			firstBackupKeyValueStore.clear();
 			firstBackupKeyValueStore.putAll(secondBackupKeyValueStore);
