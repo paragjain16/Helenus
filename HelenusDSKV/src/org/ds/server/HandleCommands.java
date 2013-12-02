@@ -399,7 +399,7 @@ public class HandleCommands implements Runnable {
 				Integer mapNumber = (Integer) argList.get(1);
 				MapType mapType = MapType.values()[mapNumber]; // map to be
 																// merged
-				String mapNumberForMerge=(String) argList.get(2);
+				String mapNumberForMerge=((Integer)argList.get(2)).toString();
 				DSLogger.logAdmin("HandleCommand", "run", "In combine request");
 				KVStoreOperation operation = new KVStoreOperation(mapNumberForMerge,
 						KVStoreOperation.OperationType.MERGE_LOCAL, mapType);
