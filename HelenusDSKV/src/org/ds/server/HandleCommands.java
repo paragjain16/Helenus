@@ -387,9 +387,9 @@ public class HandleCommands implements Runnable {
 				sendMerge.readObject();
 				sendMerge.close();
 				System.out.println("Received ack from merging node in send keys crash");
-				ack = (String) resultQueue.take();
+				
 				System.out.println("Writing ack in send keys crash to "+socket.getSocket()+" "+socket.getSocket().getPort());
-				socket.writeObject(ack);
+				socket.writeObject("ack");
 
 			} 
 			else if (cmd.equals("combine")) { //For non-sequential crash
