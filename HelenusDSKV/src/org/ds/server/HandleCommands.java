@@ -319,7 +319,7 @@ public class HandleCommands implements Runnable {
 				
 				DSocket sendMerge = new DSocket(newMember.getAddress()
 						.getHostAddress(), newMember.getPort());
-				System.out.println("Sending map of type:"+mapType +"to :"+sendMerge.getSocket().getRemoteSocketAddress()+"with values:"+mapToBeSent);
+				System.out.println("Sending map of type:"+mapType +"  to :"+sendMerge.getSocket().getRemoteSocketAddress()+"  with values:"+mapToBeSent);
 				List<Object> objList = new ArrayList<Object>();
 				if (replace == 0) {
 					objList.add("merge");
@@ -413,8 +413,7 @@ public class HandleCommands implements Runnable {
 				socket.writeObject(ack);
 			}
 			else if (cmd.equals("sendKeysCrashN")) { //For non-sequential crash
-				// send a command to local key value store to merge
-				// primary,backup1 and backup2.
+				// send a command to local key value store to replace backup1 with backup2.
 				KVStoreOperation operation = new KVStoreOperation("-1",
 						KVStoreOperation.OperationType.CRASH_RECOVERY_NON_SEQ,
 						KVStoreOperation.MapType.PRIMARY);

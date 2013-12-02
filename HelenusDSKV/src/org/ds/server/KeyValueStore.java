@@ -386,7 +386,8 @@ public class KeyValueStore implements Runnable {
 		case CRASH_RECOVERY_NON_SEQ:
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Performing crash recovery from non-sequential crashes");
-			firstBackupKeyValueStore=secondBackupKeyValueStore;
+			firstBackupKeyValueStore.clear();
+			firstBackupKeyValueStore.putAll(secondBackupKeyValueStore);
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
