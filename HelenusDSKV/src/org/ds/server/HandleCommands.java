@@ -315,7 +315,7 @@ public class HandleCommands implements Runnable {
 				operationQueue.put(operation);
 
 				Object mapToBeSent = resultQueue.take();
-				System.out.println("Sending map:"+mapToBeSent);
+				System.out.println("Sending map of type:"+mapType +"with values:"+mapToBeSent);
 				DSocket sendMerge = new DSocket(newMember.getAddress()
 						.getHostAddress(), newMember.getPort());
 				List<Object> objList = new ArrayList<Object>();

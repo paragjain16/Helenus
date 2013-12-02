@@ -397,7 +397,8 @@ public class KeyValueStore implements Runnable {
 			
 			Map<String, Object> mapToBeReplaced = oper.getMapToBeMerged();
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
-					"Replacing map:"+ oper.getOperType()+"with the map received from another node:"+mapToBeReplaced);
+					"Replacing map:"+ oper.getMapType()+"with the map received from another node:"+mapToBeReplaced);
+			System.out.println("Replacing map:"+ oper.getMapType()+"with the map received from another node:"+mapToBeReplaced);
 			chosenKeyValueStoreMap = mapToBeReplaced;
 			try {
 				resultQueue.put("ack");
