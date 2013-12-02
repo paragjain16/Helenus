@@ -446,9 +446,7 @@ public class HandleCommands implements Runnable {
 				sendMerge.readObject();
 				sendMerge.close();
 
-				ack = (String) resultQueue.take();
-
-				socket.writeObject(ack);
+				socket.writeObject("ack");
 
 			}
 			else if (cmd.equals("sendKeysCrashN1")) { //For non-sequential crash
@@ -476,9 +474,7 @@ public class HandleCommands implements Runnable {
 				sendMerge.readObject();
 				sendMerge.close();
 
-				String ack = (String) resultQueue.take();
-
-				socket.writeObject(ack);
+				socket.writeObject("ack");
 
 			}
 			
