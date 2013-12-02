@@ -289,6 +289,7 @@ public class HandleCommands implements Runnable {
 				MapType mapType = MapType.values()[mapNumber]; // map to be
 																// merged
 				DSLogger.logAdmin("HandleCommand", "run", "In replace request");
+				System.out.println("Got replace map command from : "+socket.getSocket().getRemoteSocketAddress());
 				KVStoreOperation operation = new KVStoreOperation(recievedKeys,
 						KVStoreOperation.OperationType.REPLACE, mapType);
 
@@ -315,9 +316,10 @@ public class HandleCommands implements Runnable {
 				operationQueue.put(operation);
 
 				Object mapToBeSent = resultQueue.take();
-				System.out.println("Sending map of type:"+mapType +"with values:"+mapToBeSent);
+				
 				DSocket sendMerge = new DSocket(newMember.getAddress()
 						.getHostAddress(), newMember.getPort());
+				System.out.println("Sending map of type:"+mapType +"to :"+sendMerge.getSocket().getRemoteSocketAddress()+"with values:"+mapToBeSent);
 				List<Object> objList = new ArrayList<Object>();
 				if (replace == 0) {
 					objList.add("merge");
