@@ -375,10 +375,10 @@ public class KeyValueStore implements Runnable {
 			else if (mapNumberForMerge.equals("2")){
 				mapToBeMerged=secondBackupKeyValueStore;
 			}
-			System.out.println("Inside merge_local: original map of type: "+oper.getMapType()+" has values: "+chosenKeyValueStoreMap);
-			System.out.println("Inside merge_local: map to be merged of mapnumber: "+mapToBeMerged+" has values: "+mapToBeMerged);
+			System.out.println("Inside merge_local: FIRST STEP original map of type: "+oper.getMapType()+" has values: "+chosenKeyValueStoreMap);
+			System.out.println("Inside merge_local: SECOND STEP map to be merged of mapnumber: "+mapNumberForMerge+" has values: "+mapToBeMerged);
 			chosenKeyValueStoreMap.putAll(mapToBeMerged);
-			System.out.println("Inside merge_local:After merge of local maps final map: has values: "+chosenKeyValueStoreMap);
+			System.out.println("Inside merge_local:Third STEP After merge of local maps final map: has values: "+chosenKeyValueStoreMap);
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
@@ -388,8 +388,8 @@ public class KeyValueStore implements Runnable {
 		case CRASH_RECOVERY_NON_SEQ:
 			DSLogger.logFE("KeyValueStore", "performOperation",
 					"Performing crash recovery from non-sequential crashes");
-			firstBackupKeyValueStore.clear();
-			firstBackupKeyValueStore.putAll(secondBackupKeyValueStore);
+			secondBackupKeyValueStore.clear();
+			secondBackupKeyValueStore.putAll(firstBackupKeyValueStore);
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {

@@ -413,7 +413,7 @@ public class HandleCommands implements Runnable {
 				socket.writeObject(ack);
 			}
 			else if (cmd.equals("sendKeysCrashN")) { //For non-sequential crash
-				// send a command to local key value store to replace backup1 with backup2.
+				// send a command to local key value store to replace backup2 with backup1.
 				KVStoreOperation operation = new KVStoreOperation("-1",
 						KVStoreOperation.OperationType.CRASH_RECOVERY_NON_SEQ,
 						KVStoreOperation.MapType.PRIMARY);
