@@ -810,6 +810,93 @@ public class FrontEnd implements Runnable{
 							}
 							
 						}
+						
+						else if(cmd.equals("get")){
+							DSLogger.logFE(this.getClass().getName(), "run","In get request");
+							Object lockResult = new Object();
+							HashMap<String, Object> resultMap = new HashMap<String, Object>();
+					
+							
+							Integer consistencyLevel = (Integer)argList.get(1);
+							
+							String key= (String)argList.get(2);
+							Integer hashedKey=Hash.doHash(key.toString());//Use hashedKey only for determining the node which needs to hold the actual key-value.
+							
+							//1 - ONE
+							//2 - QUORUM
+							//3 - ALL
+							
+							
+							DSLogger.logFE(this.getClass().getName(), "run","Received parameters : Key, CL "+key+":"+consistencyLevel);							
+							
+							DSLogger.logFE(this.getClass().getName(), "run","Received get request from "+socket.getSocket().getRemoteSocketAddress());
+							
+							Integer primayReplica = -1;
+							if(sortedAliveMembers.containsKey(hashedKey)){
+								primayReplica = hashedKey;
+							}else{
+								primayReplica = sortedAliveMembers.higherKey(hashedKey)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(hashedKey);
+							}
+							
+							DSLogger.logFE(this.getClass().getName(), "run","Primary replica for this key is "+primayReplica);
+							Integer firstReplica = null;
+							if(sortedAliveMembers.size()>1){
+								firstReplica = sortedAliveMembers.higherKey(primayReplica)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(primayReplica);
+							}
+							Integer secondReplica = null;
+							if(sortedAliveMembers.size()>2){
+								secondReplica = sortedAliveMembers.higherKey(firstReplica)==null?sortedAliveMembers.firstKey():sortedAliveMembers.higherKey(firstReplica);
+							}
+							
+							DSLogger.logFE(this.getClass().getName(), "run","First replica for this key is "+firstReplica);
+							DSLogger.logFE(this.getClass().getName(), "run","Second replica for this key is "+secondReplica);
+							
+							
+							// Contact all replicas to insert the received key but wait for reply from no of machines defined
+							// by consistency level
+							
+							Executor executor = Executors.newFixedThreadPool(3);
+							String address = "";
+							int port = -1;
+							if(aliveMembers.get(primayReplica+"")!=null){
+								address = aliveMembers.get(primayReplica+"").getAddress().getHostAddress();
+								port = aliveMembers.get(primayReplica+"").getPort();
+								DSLogger.logFE(this.getClass().getName(), "run","Contacting Primary Replica "+address+" : "+port+ "for operation "+cmd);
+								executor.execute(new AsynchFEExecutor(resultMap, lockResult, address, port, argList, 0));
+							}
+							
+							//Contact first replica
+							if(aliveMembers.get(firstReplica+"")!=null){
+								address = aliveMembers.get(firstReplica+"").getAddress().getHostAddress();
+								port = aliveMembers.get(firstReplica+"").getPort();
+								DSLogger.logFE(this.getClass().getName(), "run","Contacting First Replica "+address+" : "+port+ "for operation "+cmd);
+								executor.execute(new AsynchFEExecutor(resultMap, lockResult, address, port, argList, 1));
+							}
+							
+							//contact second replica
+							if(aliveMembers.get(secondReplica+"")!=null){
+								address = aliveMembers.get(secondReplica+"").getAddress().getHostAddress();
+								port = aliveMembers.get(secondReplica+"").getPort();
+								DSLogger.logFE(this.getClass().getName(), "run","Contacting Second Replica "+address+" : "+port+ "for operation "+cmd);
+								executor.execute(new AsynchFEExecutor(resultMap, lockResult, address, port, argList, 2));
+							}
+							
+							DSLogger.logFE(this.getClass().getName(), "run","Waiting for "+consistencyLevel+" threads to finish operation");
+							while(true){
+								//DSLogger.logFE(this.getClass().getName(), "run"," consistency level is "+consistencyLevel+"Result Map size is "+resultMap.size());
+								synchronized (lockResult) {
+									if(resultMap.size()>=consistencyLevel){
+										DSLogger.logFE(this.getClass().getName(), "run","Consistency level "+consistencyLevel+" satisfied");
+										break;
+									}
+								}
+								
+							}
+							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +resultMap);
+							socket.writeObject(resultMap.values().toArray()[0]);
+							socket.close();
+							DSLogger.logFE(this.getClass().getName(), "run","Exiting");
+						}
 					
 				} catch (IOException e) {
 					DSLogger.logFE("FrontEnd","run","In exception "+e.getMessage());
