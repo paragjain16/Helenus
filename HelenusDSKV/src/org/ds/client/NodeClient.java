@@ -19,6 +19,7 @@ import org.ds.hash.Hash;
 import org.ds.logger.DSLogger;
 import org.ds.networkConf.XmlParseUtility;
 import org.ds.server.KVStoreOperation.MapType;
+import org.ds.server.MostRecentOperations;
 import org.ds.socket.DSocket;
 
 /**
@@ -48,13 +49,14 @@ public class NodeClient {
 		options.addOption("d", false, "delete");
 		options.addOption("q", false, "quit");
 		options.addOption("s", false, "show");
+		options.addOption("sr", false, "showRecent");
 		options.addOption("ti", false, "test insert");
 		options.addOption("tl", false, "test lookup");
 		options.addOption("til", false, "test insert and lookup");
 
 		// automatically generate the help statement
-		//HelpFormatter formatter = new HelpFormatter();
-		//formatter.printHelp("help", options);
+		// HelpFormatter formatter = new HelpFormatter();
+		// formatter.printHelp("help", options);
 		System.setProperty("logfile.name", "./machine.log");
 		CommandLineParser parser = new PosixParser();
 		CommandLine cmd = null;
@@ -78,12 +80,21 @@ public class NodeClient {
 
 		if (cmd.hasOption("c")) {
 			consistencyLevel = Integer.parseInt(cmd.getOptionValue("c"));
+		} else if (!cmd.hasOption("c")) {
+			// Consistency level is mandatory for all commands except show and
+			// showRecent commands
+			if (!(cmd.hasOption("s")) && !(cmd.hasOption("sr"))) {
+				System.out
+						.println("Please specify a consistency level of ONE,QUOROUM or ALL with the request");
+				System.exit(0);
+			}
 		}
 
 		NodeClient client = new NodeClient();
 		String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
 		client.contactMachineIP = contactMachineAddr.split(":")[0];
-		client.contactMachinePort = Integer.parseInt(contactMachineAddr.split(":")[1]);
+		client.contactMachinePort = Integer.parseInt(contactMachineAddr
+				.split(":")[1]);
 
 		if (cmd.hasOption("l")) {
 			// Invoke the insert method on NodeClient
@@ -91,7 +102,8 @@ public class NodeClient {
 			Object objValue = client.lookup(key, consistencyLevel);
 			if (objValue instanceof String
 					&& objValue.toString().equals("!#KEYNOTFOUND#!")) {
-				System.out.println("Entered key not found in the distributed key value store");
+				System.out
+						.println("Entered key not found in the distributed key value store");
 			} else {
 				System.out.println("Object:" + objValue);
 			}
@@ -128,20 +140,47 @@ public class NodeClient {
 
 		else if (cmd.hasOption("s")) {
 			// Invoke the update method on NodeClient
-			List<Map> mapList = (List<Map>) client.show();
+			List<Map> mapList = (List<Map>) client.show(false);
 			int count = 0;
 			for (Map map : mapList) {
-				System.out.println("*******Displaying map: " + MapType.values()[count]+" ***************"); 
+				System.out.println("*******Displaying map: "
+						+ MapType.values()[count] + " ***************");
 				count++;
 				Map<String, Object> objMap = (Map<String, Object>) map;
 				DSLogger.logAdmin("NodeClient", "main",
 						"Received object in main " + objMap);
-				//String id = (String) objMap.get(-1);
-				//objMap.remove(-1);
-				//System.out.println("At node id: " + id);
+				// String id = (String) objMap.get(-1);
+				// objMap.remove(-1);
+				// System.out.println("At node id: " + id);
 				System.out.println("Local Hashmap of size " + objMap.size()
 						+ " : " + objMap);
 			}
+		} else if (cmd.hasOption("sr")) {
+			// Invoke the update method on NodeClient
+			List<MostRecentOperations<String>> recentOpsList = (List<MostRecentOperations<String>>) client.show(true);
+			System.out.println("*******Displaying 10 most recent writes at this node*********");
+			MostRecentOperations<String> mostRecentWrites = recentOpsList.get(0);
+			if (mostRecentWrites != null) {
+				if(mostRecentWrites.size()>0){
+				 for (int i = mostRecentWrites.size()-1; i >= 0; i--) {
+					String combinedValue = mostRecentWrites.get(i);
+					System.out.println("Key: " + combinedValue.split(":")[0]
+							+ "  Value:" + combinedValue.split(":")[1]);
+				 }
+				}
+			}
+			System.out.println("*******Displaying 10 most recent reads at this node*********");
+			MostRecentOperations<String> mostRecentReads = recentOpsList.get(1);
+			if(mostRecentReads!=null){
+				if(mostRecentReads.size()>0){
+				for (int i = mostRecentReads.size()-1; i >= 0; i--) {
+					String combinedValue = mostRecentReads.get(i);
+					System.out.println("Key: " + combinedValue.split(":")[0]
+						+ "  Value:" + combinedValue.split(":")[1]);
+					}
+				}
+			}
+
 		} else if (cmd.hasOption("q")) {
 			client.quit();
 		} else if (cmd.hasOption("til")) {
@@ -208,12 +247,16 @@ public class NodeClient {
 		invokeCommand(objList, true);
 	}
 
-	private Object show() {
+	private Object show(boolean recent) {
 		List<Object> objList = new ArrayList<Object>();
-		objList.add(new String("display"));
+		if (recent) {
+			objList.add(new String("displayRecent"));
+		} else {
+			objList.add(new String("display"));
+		}
 		try {
 
-			DSocket server = new DSocket("127.0.0.1",3456);
+			DSocket server = new DSocket("127.0.0.1", 3456);
 			server.writeObjectList(objList);
 			Object output = null;
 			output = server.readObject();
@@ -226,7 +269,7 @@ public class NodeClient {
 		} catch (IOException e) {
 			DSLogger.log("NodeClient", "invokeCommand", e.getMessage());
 		}
-		//return invokeCommand(objList, true);
+		// return invokeCommand(objList, true);
 		return null;
 	}
 
@@ -274,13 +317,13 @@ public class NodeClient {
 		DSLogger.logAdmin("NodeClient", "invokeCommand", "Entering");
 		DSLogger.logAdmin("NodeClient", "invokeCommand", objList.get(0)
 				.toString());
-		
-		
+
 		try {
-			//System.out.println("Contacting "+contactMachineIP+" at port 4000");
+			// System.out.println("Contacting "+contactMachineIP+" at port 4000");
 			DSocket server = new DSocket(contactMachineIP, 4000);
-			//System.out.println("Connection established with "+server.getSocket());
-			DSLogger.logFE("NodeClient", "invokeCommand", "Socket connection with FE established");
+			// System.out.println("Connection established with "+server.getSocket());
+			DSLogger.logFE("NodeClient", "invokeCommand",
+					"Socket connection with FE established");
 			server.writeObjectList(objList);
 			Object output = null;
 			output = server.readObject();

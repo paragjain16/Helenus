@@ -264,7 +264,8 @@ public class HandleCommands implements Runnable {
 			}
 			// tells this node to merge the received key list to its key space
 			else if (cmd.equals("merge")) {
-				HashMap<String, Object> recievedKeys = (HashMap<String, Object>) argList.get(1);
+				HashMap<String, Object> recievedKeys = (HashMap<String, Object>) argList
+						.get(1);
 				Integer mapNumber = (Integer) argList.get(2);
 				MapType mapType = MapType.values()[mapNumber]; // map to be
 																// merged
@@ -289,7 +290,8 @@ public class HandleCommands implements Runnable {
 				MapType mapType = MapType.values()[mapNumber]; // map to be
 																// merged
 				DSLogger.logAdmin("HandleCommand", "run", "In replace request");
-				System.out.println("Got replace map command from : "+socket.getSocket().getRemoteSocketAddress());
+				System.out.println("Got replace map command from : "
+						+ socket.getSocket().getRemoteSocketAddress());
 				KVStoreOperation operation = new KVStoreOperation(recievedKeys,
 						KVStoreOperation.OperationType.REPLACE, mapType);
 
@@ -316,10 +318,12 @@ public class HandleCommands implements Runnable {
 				operationQueue.put(operation);
 
 				Object mapToBeSent = resultQueue.take();
-				
+
 				DSocket sendMerge = new DSocket(newMember.getAddress()
 						.getHostAddress(), newMember.getPort());
-				System.out.println("Sending map of type:"+mapType +"  to :"+sendMerge.getSocket().getRemoteSocketAddress()+"  with values:"+mapToBeSent);
+				System.out.println("Sending map of type:" + mapType + "  to :"
+						+ sendMerge.getSocket().getRemoteSocketAddress()
+						+ "  with values:" + mapToBeSent);
 				List<Object> objList = new ArrayList<Object>();
 				if (replace == 0) {
 					objList.add("merge");
@@ -386,22 +390,30 @@ public class HandleCommands implements Runnable {
 				sendMerge.writeObjectList(objList);
 
 				// Consuming the acknowledgment send by merging node
-				System.out.println("Waiting for ack from merging node in send keys crash");
+				System.out
+						.println("Waiting for ack from merging node in send keys crash");
 				sendMerge.readObject();
 				sendMerge.close();
-				System.out.println("Received ack from merging node in send keys crash");
-				
-				System.out.println("Writing ack in send keys crash to "+socket.getSocket()+" "+socket.getSocket().getPort());
+				System.out
+						.println("Received ack from merging node in send keys crash");
+
+				System.out.println("Writing ack in send keys crash to "
+						+ socket.getSocket() + " "
+						+ socket.getSocket().getPort());
 				socket.writeObject("ack");
 
-			} 
-			else if (cmd.equals("combine")) { //For non-sequential crash
+			} else if (cmd.equals("combine")) { // For non-sequential crash
 				Integer mapNumber = (Integer) argList.get(1);
 				MapType mapType = MapType.values()[mapNumber]; // map to be
 																// merged
-				String mapNumberForMerge=((Integer)argList.get(2)).toString();
-				DSLogger.logFE("HandleCommand", "run", "In combine request, to combine mapNumber: "+mapNumberForMerge+" with mapnumber:"+mapNumber);
-				KVStoreOperation operation = new KVStoreOperation(mapNumberForMerge,
+				String mapNumberForMerge = ((Integer) argList.get(2))
+						.toString();
+				DSLogger.logFE("HandleCommand", "run",
+						"In combine request, to combine mapNumber: "
+								+ mapNumberForMerge + " with mapnumber:"
+								+ mapNumber);
+				KVStoreOperation operation = new KVStoreOperation(
+						mapNumberForMerge,
 						KVStoreOperation.OperationType.MERGE_LOCAL, mapType);
 
 				operationQueue.put(operation);
@@ -411,9 +423,10 @@ public class HandleCommands implements Runnable {
 				DSLogger.logAdmin("HandleCommand", "run",
 						"In merge request got " + ack);
 				socket.writeObject(ack);
-			}
-			else if (cmd.equals("sendKeysCrashN")) { //For non-sequential crash
-				// send a command to local key value store to replace backup1 with backup2.
+			} else if (cmd.equals("sendKeysCrashN")) { // For non-sequential
+														// crash
+				// send a command to local key value store to replace backup1
+				// with backup2.
 				KVStoreOperation operation = new KVStoreOperation("-1",
 						KVStoreOperation.OperationType.CRASH_RECOVERY_NON_SEQ,
 						KVStoreOperation.MapType.PRIMARY);
@@ -422,34 +435,34 @@ public class HandleCommands implements Runnable {
 				String ack = (String) resultQueue.take();
 
 				// Step 2 :Send primary map.
-				/*Integer mapNumber = (Integer) argList.get(1);
-				MapType mapType = MapType.values()[mapNumber]; // map to be sent
-				operation = new KVStoreOperation("-1",
-						KVStoreOperation.OperationType.GET_MAP, mapType);
-				operationQueue.put(operation);
-				Object copiedMap = resultQueue.take();
-
-				Member memberToSendTo = (Member) argList.get(2);
-				DSocket sendMerge = new DSocket(memberToSendTo.getAddress()
-						.getHostAddress(), memberToSendTo.getPort());
-				List<Object> objList = new ArrayList<Object>();
-				objList.add("mergeMultiple");
-				objList.add(Integer.parseInt("2"));// Map which needs to hold
-													// the multiple merges.
-				objList.add(Integer.parseInt("2"));// Number of maps to merge
-				objList.add(Integer.parseInt("2"));// Merge this map
-				objList.add(copiedMap);// Merge this map.
-				sendMerge.writeObjectList(objList);
-
-				// Consuming the acknowledgment send by merging node
-				sendMerge.readObject();
-				sendMerge.close();*/
+				/*
+				 * Integer mapNumber = (Integer) argList.get(1); MapType mapType
+				 * = MapType.values()[mapNumber]; // map to be sent operation =
+				 * new KVStoreOperation("-1",
+				 * KVStoreOperation.OperationType.GET_MAP, mapType);
+				 * operationQueue.put(operation); Object copiedMap =
+				 * resultQueue.take();
+				 * 
+				 * Member memberToSendTo = (Member) argList.get(2); DSocket
+				 * sendMerge = new DSocket(memberToSendTo.getAddress()
+				 * .getHostAddress(), memberToSendTo.getPort()); List<Object>
+				 * objList = new ArrayList<Object>();
+				 * objList.add("mergeMultiple");
+				 * objList.add(Integer.parseInt("2"));// Map which needs to hold
+				 * // the multiple merges. objList.add(Integer.parseInt("2"));//
+				 * Number of maps to merge objList.add(Integer.parseInt("2"));//
+				 * Merge this map objList.add(copiedMap);// Merge this map.
+				 * sendMerge.writeObjectList(objList);
+				 * 
+				 * // Consuming the acknowledgment send by merging node
+				 * sendMerge.readObject(); sendMerge.close();
+				 */
 
 				socket.writeObject(ack);
 
-			}
-			else if (cmd.equals("sendKeysCrashN1")) { //For non-sequential crash
-				// send primary to machine 2				
+			} else if (cmd.equals("sendKeysCrashN1")) { // For non-sequential
+														// crash
+				// send primary to machine 2
 				Integer mapNumber = (Integer) argList.get(1);
 				MapType mapType = MapType.values()[mapNumber]; // map to be sent
 				KVStoreOperation operation = new KVStoreOperation("-1",
@@ -476,8 +489,7 @@ public class HandleCommands implements Runnable {
 				socket.writeObject("ack");
 
 			}
-			
-			
+
 			else if (cmd.equals("mergeMultiple")) {
 				DSLogger.logAdmin("HandleCommand", "run",
 						"In mergeMultiple request");
@@ -497,7 +509,8 @@ public class HandleCommands implements Runnable {
 								(Map<String, Object>) mergeMap,
 								KVStoreOperation.OperationType.MERGE, mapType);
 					} else {
-						operation = new KVStoreOperation( ((Integer) mergeMap).toString(),
+						operation = new KVStoreOperation(
+								((Integer) mergeMap).toString(),
 								KVStoreOperation.OperationType.MERGE_LOCAL,
 								mapType);
 					}
@@ -507,8 +520,9 @@ public class HandleCommands implements Runnable {
 					String ack = (String) resultQueue.take();
 					DSLogger.logAdmin("HandleCommand", "run",
 							"In merge request got " + ack);
-				}				
-				System.out.println("Writing ack to"+socket.getSocket()+" "+socket.getSocket().getPort());
+				}
+				System.out.println("Writing ack to" + socket.getSocket() + " "
+						+ socket.getSocket().getPort());
 				socket.writeObject("ack");
 				System.out.println("Writing done");
 
@@ -548,6 +562,19 @@ public class HandleCommands implements Runnable {
 				DSLogger.logAdmin("HandleCommand", "run",
 						"Sending map to node client of size " + map.size());
 				socket.writeObject(map);
+			}
+			// for showing the key space on console
+			else if (cmd.equals("displayRecent")) {
+				DSLogger.logAdmin("HandleCommand", "run",
+						"Retrieving recent reads and writes for display");
+				KVStoreOperation operation = new KVStoreOperation("-1",
+						KVStoreOperation.OperationType.DISPLAY_RECENT,
+						KVStoreOperation.MapType.PRIMARY);
+				operationQueue.put(operation);
+				Object value = resultQueue.take();
+				DSLogger.logAdmin("HandleCommand", "run",
+						"Display recent Map of size received in Handle Command");
+				socket.writeObject(value);
 			}
 
 		} catch (Exception e) {

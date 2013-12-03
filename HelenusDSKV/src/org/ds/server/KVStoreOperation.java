@@ -1,5 +1,6 @@
 package org.ds.server;
 
+import java.util.LinkedList;
 import java.util.Map;
 
 /**
@@ -47,7 +48,7 @@ public class KVStoreOperation {
 	}
 
 	public enum OperationType {
-		PUT, GET, UPDATE, DELETE, MERGE, MERGE_LOCAL,CRASH_RECOVERY_NON_SEQ,PARTITION,SEND_KEYS, LEAVE, GET_MAP,SPLIT_BACKUP_LOCAL,SPLIT_BACKUP_TWO,DISPLAY,REPLACE,CRASH_RECOVERY
+		PUT, GET, UPDATE, DELETE, MERGE, MERGE_LOCAL,CRASH_RECOVERY_NON_SEQ,PARTITION,SEND_KEYS, LEAVE, GET_MAP,SPLIT_BACKUP_LOCAL,SPLIT_BACKUP_TWO,DISPLAY,DISPLAY_RECENT,REPLACE,CRASH_RECOVERY
 	}
 
 	public enum MapType {
@@ -69,5 +70,6 @@ public class KVStoreOperation {
 	public Map<String, Object> getMapToBeMerged() {
 		return mapToBeMerged;
 	}
+		
 
 }

@@ -3,6 +3,7 @@ package org.ds.server;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,11 @@ public class KeyValueStore implements Runnable {
 	private Map<String, Object> primaryKeyValueStoreMap = new HashMap<String, Object>();
 	private Map<String, Object> firstBackupKeyValueStore = new HashMap<String, Object>();
 	private Map<String, Object> secondBackupKeyValueStore = new HashMap<String, Object>();
+	
+	private MostRecentOperations<String> tenMostRecentWrittenKeys=new MostRecentOperations<String>();
+	private MostRecentOperations<String> tenMostRecentReadKeys=new MostRecentOperations<String>();
+	
+	
 
 	public KeyValueStore(BlockingQueue<KVStoreOperation> operationQueue,
 			BlockingQueue<Object> resultQueue, Member itself) {
@@ -92,6 +98,9 @@ public class KeyValueStore implements Runnable {
 				if (retValue == null) { // Key Not found
 					retValue = "!#KEYNOTFOUND#!";
 				}
+				if(!retValue.equals("!#KEYNOTFOUND#!")){
+					tenMostRecentReadKeys.add(oper.getKey()+":"+retValue);
+				}
 				resultQueue.put(retValue);
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
@@ -104,6 +113,7 @@ public class KeyValueStore implements Runnable {
 					"putting key:" + oper.getKey() + "and value:"
 							+ oper.getValue());
 			chosenKeyValueStoreMap.put(oper.getKey(), oper.getValue());
+			tenMostRecentWrittenKeys.add(oper.getKey()+":"+oper.getValue());
 			break;
 
 		case UPDATE:
@@ -111,6 +121,7 @@ public class KeyValueStore implements Runnable {
 					"updating for  key:" + oper.getKey() + "and new value:"
 							+ oper.getValue());
 			chosenKeyValueStoreMap.put(oper.getKey(), oper.getValue());
+			tenMostRecentWrittenKeys.add(oper.getKey()+":"+oper.getValue());
 			break;
 
 		case DELETE:
@@ -349,7 +360,16 @@ public class KeyValueStore implements Runnable {
 				e.printStackTrace();
 			}
 			break;
-
+		case DISPLAY_RECENT:	try {
+			List<MostRecentOperations<String>> recentOpsList = new ArrayList<MostRecentOperations<String>>();
+			recentOpsList.add(tenMostRecentWrittenKeys);
+			recentOpsList.add(tenMostRecentReadKeys);
+			resultQueue.put(recentOpsList);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		break;
+			
 		case MERGE:
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Merging map received from a node");
@@ -432,7 +452,7 @@ public class KeyValueStore implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			break;
+			break;		
 		}
 	}
 }
