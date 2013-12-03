@@ -413,7 +413,7 @@ public class HandleCommands implements Runnable {
 				socket.writeObject(ack);
 			}
 			else if (cmd.equals("sendKeysCrashN")) { //For non-sequential crash
-				// send a command to local key value store to replace backup2 with backup1.
+				// send a command to local key value store to replace backup1 with backup2.
 				KVStoreOperation operation = new KVStoreOperation("-1",
 						KVStoreOperation.OperationType.CRASH_RECOVERY_NON_SEQ,
 						KVStoreOperation.MapType.PRIMARY);
@@ -422,7 +422,7 @@ public class HandleCommands implements Runnable {
 				String ack = (String) resultQueue.take();
 
 				// Step 2 :Send primary map.
-				Integer mapNumber = (Integer) argList.get(1);
+				/*Integer mapNumber = (Integer) argList.get(1);
 				MapType mapType = MapType.values()[mapNumber]; // map to be sent
 				operation = new KVStoreOperation("-1",
 						KVStoreOperation.OperationType.GET_MAP, mapType);
@@ -434,7 +434,7 @@ public class HandleCommands implements Runnable {
 						.getHostAddress(), memberToSendTo.getPort());
 				List<Object> objList = new ArrayList<Object>();
 				objList.add("mergeMultiple");
-				objList.add(Integer.parseInt("1"));// Map which needs to hold
+				objList.add(Integer.parseInt("2"));// Map which needs to hold
 													// the multiple merges.
 				objList.add(Integer.parseInt("2"));// Number of maps to merge
 				objList.add(Integer.parseInt("2"));// Merge this map
@@ -443,9 +443,9 @@ public class HandleCommands implements Runnable {
 
 				// Consuming the acknowledgment send by merging node
 				sendMerge.readObject();
-				sendMerge.close();
+				sendMerge.close();*/
 
-				socket.writeObject("ack");
+				socket.writeObject(ack);
 
 			}
 			else if (cmd.equals("sendKeysCrashN1")) { //For non-sequential crash

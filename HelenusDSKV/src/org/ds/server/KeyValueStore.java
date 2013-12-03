@@ -387,9 +387,9 @@ public class KeyValueStore implements Runnable {
 			break;
 		case CRASH_RECOVERY_NON_SEQ:
 			DSLogger.logFE("KeyValueStore", "performOperation",
-					"Performing crash recovery from non-sequential crashes");
-			secondBackupKeyValueStore.clear();
-			secondBackupKeyValueStore.putAll(firstBackupKeyValueStore);
+					"Performing crash recovery from non-sequential crashes and replacing backup1 with backup2");
+			firstBackupKeyValueStore.clear();
+			firstBackupKeyValueStore.putAll(secondBackupKeyValueStore);
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
