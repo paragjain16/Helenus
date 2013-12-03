@@ -83,36 +83,36 @@ public class Gossiper implements Runnable{
 					keysToRemove.add(aMember.getIdentifier());
 					deadMembers.put(aMember.getIdentifier(), aMember);
 					
-					
-					if(!crashDetected && deadMembers.size()>1 && frontEnd && (waitForCrash++>9)){
-						crashDetected = true;
-						System.out.println("Simultaneous failure detected on front End ");
-						DSLogger.logFE(this.getClass().getName(), "run","Simultaneous failures detected");
-						DSLogger.logFE(this.getClass().getName(), "run","Dead member set : "+deadMembers);
-						DSLogger.logFE(this.getClass().getName(), "run","Alive member set : "+aliveMembers);
-						List<Object> objList = new ArrayList<Object>();
-						objList.add(new String("crash"));
-						//objList.add(deadMembers);
-						String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
-						String contactMachineIP = contactMachineAddr.split(":")[0];
-						try {
-							DSocket sendCrash = new DSocket(contactMachineIP, 4000);
-							sendCrash.writeObjectList(objList);
-							sendCrash.close();				
-						} catch (UnknownHostException e) {
-							DSLogger.logFE("Gossiper", "run", e.getMessage());
-							e.printStackTrace();
-						} catch (IOException e) {
-							DSLogger.logFE("Gossiper", "run", e.getMessage());
-							e.printStackTrace();
-						}
-					}
 					DSLogger.report(aMember.getIdentifier()," added to dead list");
 				}
 			}
 			for(String keytoRemove: keysToRemove){
 				aliveMembers.remove(keytoRemove);
 				DSLogger.log("Gossiper", "run", keytoRemove+" removed from alive list");
+			}
+			
+			if(!crashDetected && deadMembers.size()>1 && frontEnd && (waitForCrash++>14)){
+				crashDetected = true;
+				System.out.println("Simultaneous failure detected on front End ");
+				DSLogger.logFE(this.getClass().getName(), "run","Simultaneous failures detected");
+				DSLogger.logFE(this.getClass().getName(), "run","Dead member set : "+deadMembers);
+				DSLogger.logFE(this.getClass().getName(), "run","Alive member set : "+aliveMembers);
+				List<Object> objList = new ArrayList<Object>();
+				objList.add(new String("crash"));
+				//objList.add(deadMembers);
+				String contactMachineAddr = XmlParseUtility.getContactMachineAddr();
+				String contactMachineIP = contactMachineAddr.split(":")[0];
+				try {
+					DSocket sendCrash = new DSocket(contactMachineIP, 4000);
+					sendCrash.writeObjectList(objList);
+					sendCrash.close();				
+				} catch (UnknownHostException e) {
+					DSLogger.logFE("Gossiper", "run", e.getMessage());
+					e.printStackTrace();
+				} catch (IOException e) {
+					DSLogger.logFE("Gossiper", "run", e.getMessage());
+					e.printStackTrace();
+				}
 			}
 			DSLogger.log("Gossiper", "run", "Alive and dead member list updated");
 			memberList = new ArrayList<Member>(aliveMembers.values());
