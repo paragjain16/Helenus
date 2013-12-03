@@ -679,19 +679,35 @@ public class FrontEnd implements Runnable{
 								
 								
 								//Step 4
-								//TODO locally for machine 1 Replace Backup2 with backup1 
-								//for machine 1 send primary to machine 3
-								//for machine 3 - backup2 = primary received from machine 1
+								//locally for machine 1 Replace Backup1 with backup2 
 								System.out.println("In Step4 of crash handle ");
 								DSLogger.logFE(this.getClass().getName(), "run","In Step4 of crash handle");
 								
 								argList.clear();
 								
 								argList.add(0, "sendKeysCrashN"); //command
+								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(0)+" to Replace Backup1 with backup2  ");
+								mem = aliveMembers.get(machines.get(0)+"");
+								sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
+								sendMerge.writeObjectList(argList);
+								//consume ack
+								sendMerge.readObject();
+								sendMerge.close();
+								
+								
+								
+								//Step 5
+								//Send Primary keys from machine 1 to machine 3 and make it backup2
+								System.out.println("In Step5 of crash handle ");
+								DSLogger.logFE(this.getClass().getName(), "run","In Step5 of crash handle");
+								
+								argList.clear();
+								argList.add(0, "sendKeys"); //command
 								
 								argList.add(1, 0); //keyspace to send
-								argList.add(2, aliveMembers.get(machines.get(1)+"")); //To
+								argList.add(2, aliveMembers.get(machines.get(2)+"")); //To
 								argList.add(3, 2);// keyspace of destination
+								argList.add(4, 1);// replace=true
 								
 								DSLogger.logFE(this.getClass().getName(), "run","Asking node "+machines.get(0)+" to send its primary key space to "+machines.get(2));
 								mem = aliveMembers.get(machines.get(0)+"");
@@ -701,10 +717,11 @@ public class FrontEnd implements Runnable{
 								sendMerge.readObject();
 								sendMerge.close();
 								
-								//Step 5						
+								
+								//Step 6						
 								//Send Primary keys from machine 1 to machine 2 and make it backup1
-								System.out.println("In Step5 of crash handle");
-								DSLogger.logFE(this.getClass().getName(), "run","In Step5 of crash handle");
+								System.out.println("In Step6 of crash handle");
+								DSLogger.logFE(this.getClass().getName(), "run","In Step6 of crash handle");
 								
 								argList.clear();
 								argList.add(0, "sendKeys"); //command
@@ -723,10 +740,10 @@ public class FrontEnd implements Runnable{
 								sendMerge.close();
 								
 								
-								//Step 6
+								//Step 7
 								//Send Primary keys from machine 3 to machine 2 and make it backup2
 								System.out.println("In Step6 of crash handle");
-								DSLogger.logFE(this.getClass().getName(), "run","In Step6 of crash handle");
+								DSLogger.logFE(this.getClass().getName(), "run","In Step7 of crash handle");
 								
 								argList.clear();
 								argList.add(0, "sendKeys"); //command
@@ -744,10 +761,10 @@ public class FrontEnd implements Runnable{
 								sendMerge.readObject();
 								sendMerge.close();
 								
-								//Step 7
+								//Step 8
 								//Send Primary keys from machine 2 to machine 1 and make it backup2
-								System.out.println("In Step7 of crash handle");
-								DSLogger.logFE(this.getClass().getName(), "run","In Step7 of crash handle");
+								System.out.println("In Step8 of crash handle");
+								DSLogger.logFE(this.getClass().getName(), "run","In Step8 of crash handle");
 								
 								argList.clear();
 								argList.add(0, "sendKeys"); //command
