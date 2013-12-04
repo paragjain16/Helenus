@@ -11,7 +11,7 @@ import org.ds.networkConf.XmlParseUtility;
 
 
 public class ReadNames {
-	private static final String FILENAME = "top250";
+	private static final String FILENAME = "movies";
 	public static void read(String lineNo){
 		try {
 			//String lineNo = "25,71,103,203,241,";
