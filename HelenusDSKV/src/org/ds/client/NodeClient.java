@@ -105,7 +105,13 @@ public class NodeClient {
 				System.out
 						.println("Entered key not found in the distributed key value store");
 			} else {
-				System.out.println("Object:" + objValue);
+				String valueStr = (String) objValue;
+				if (valueStr.contains(",")) {
+					DSLogger.logFE("ReadNames", "read", "Retreiving titles present in line nos:"+valueStr);
+					ReadNames.read(valueStr);
+				} else {
+					System.out.println("Object:" + objValue);
+				}
 			}
 		}
 
@@ -157,26 +163,32 @@ public class NodeClient {
 			}
 		} else if (cmd.hasOption("sr")) {
 			// Invoke the update method on NodeClient
-			List<MostRecentOperations<String>> recentOpsList = (List<MostRecentOperations<String>>) client.show(true);
-			System.out.println("*******Displaying 10 most recent writes at this node*********");
-			MostRecentOperations<String> mostRecentWrites = recentOpsList.get(0);
+			List<MostRecentOperations<String>> recentOpsList = (List<MostRecentOperations<String>>) client
+					.show(true);
+			System.out
+					.println("*******Displaying 10 most recent writes at this node*********");
+			MostRecentOperations<String> mostRecentWrites = recentOpsList
+					.get(0);
 			if (mostRecentWrites != null) {
-				if(mostRecentWrites.size()>0){
-				 for (int i = mostRecentWrites.size()-1; i >= 0; i--) {
-					String combinedValue = mostRecentWrites.get(i);
-					System.out.println("Key: " + combinedValue.split(":")[0]
-							+ "  Value:" + combinedValue.split(":")[1]);
-				 }
+				if (mostRecentWrites.size() > 0) {
+					for (int i = mostRecentWrites.size() - 1; i >= 0; i--) {
+						String combinedValue = mostRecentWrites.get(i);
+						System.out.println("Key: "
+								+ combinedValue.split(":")[0] + "  Value:"
+								+ combinedValue.split(":")[1]);
+					}
 				}
 			}
-			System.out.println("*******Displaying 10 most recent reads at this node*********");
+			System.out
+					.println("*******Displaying 10 most recent reads at this node*********");
 			MostRecentOperations<String> mostRecentReads = recentOpsList.get(1);
-			if(mostRecentReads!=null){
-				if(mostRecentReads.size()>0){
-				for (int i = mostRecentReads.size()-1; i >= 0; i--) {
-					String combinedValue = mostRecentReads.get(i);
-					System.out.println("Key: " + combinedValue.split(":")[0]
-						+ "  Value:" + combinedValue.split(":")[1]);
+			if (mostRecentReads != null) {
+				if (mostRecentReads.size() > 0) {
+					for (int i = mostRecentReads.size() - 1; i >= 0; i--) {
+						String combinedValue = mostRecentReads.get(i);
+						System.out.println("Key: "
+								+ combinedValue.split(":")[0] + "  Value:"
+								+ combinedValue.split(":")[1]);
 					}
 				}
 			}

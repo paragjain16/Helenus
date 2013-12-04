@@ -6,17 +6,29 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.ds.logger.DSLogger;
+import org.ds.networkConf.XmlParseUtility;
+
 
 public class ReadNames {
-	public static void main(String[] args){
+	private static final String FILENAME = "top250";
+	public static void read(String lineNo){
 		try {
-			String lineNo = "25,71,103,203,241,";
-			BufferedReader br = new BufferedReader(new FileReader(new File("./top250")));
+			//String lineNo = "25,71,103,203,241,";
+			DSLogger.logFE("ReadNames", "read", "Retreiving titles present in line nos:"+lineNo);
+			File currentJavaJarFile = new File(XmlParseUtility.class
+					.getProtectionDomain().getCodeSource().getLocation()
+					.getPath());
+			String currentJavaJarFilePath = currentJavaJarFile
+					.getAbsolutePath();
+			String currentRootDirectoryPath = currentJavaJarFilePath.replace(
+					currentJavaJarFile.getName(), "");
+			BufferedReader br = new BufferedReader(new FileReader(new File(currentRootDirectoryPath+ FILENAME)));
 			String[] lines = lineNo.split(",");
 			//System.out.println(lines.length);
-			for(String line : lines){
+			/*for(String line : lines){
 				System.out.println(line);
-			}
+			}*/
 			//System.out.println(lines);
 			ArrayList<String> movies = new ArrayList<String>();
 			int i=0;
