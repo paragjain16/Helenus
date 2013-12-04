@@ -48,10 +48,12 @@ public class ReadNames {
 			}
 			System.out.println(movies);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+			
+			DSLogger.logFE("ReadNames", "read", e.getMessage());
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		
+			DSLogger.logFE("ReadNames", "read", e.getMessage());
 			e.printStackTrace();
 		}
 		
