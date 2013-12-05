@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Executor;
@@ -38,6 +39,8 @@ public class FrontEnd implements Runnable{
 	private TreeMap<Integer, Member> sortedDeadMembers;
 	private Object lock;
 	private Member itself;
+	private Map<String, Object> outputMap = new HashMap<String, Object>();
+	
 	
 	//Shares the alive and dead member list of the contact server
 	public FrontEnd(HashMap<String, Member> aliveMembers, HashMap<String, Member> deadMembers, Object lock, Member itself){
@@ -45,6 +48,7 @@ public class FrontEnd implements Runnable{
 		this.deadMembers = deadMembers;
 		this.lock = lock;
 		this.itself = itself;
+		outputMap = new HashMap<String, Object>();
 		try {
 			serverSocket = new ServerSocket(4000);
 		} catch (IOException e) {
@@ -261,18 +265,22 @@ public class FrontEnd implements Runnable{
 							}
 							
 							DSLogger.logFE(this.getClass().getName(), "run","Waiting for "+consistencyLevel+" threads to finish operation");
+							
 							while(true){
 								//DSLogger.logFE(this.getClass().getName(), "run"," consistency level is "+consistencyLevel+"Result Map size is "+resultMap.size());
 								synchronized (lockResult) {
 									if(resultMap.size()>=consistencyLevel){
 										DSLogger.logFE(this.getClass().getName(), "run","Consistency level "+consistencyLevel+" satisfied");
+										outputMap.clear();
+										outputMap.putAll(resultMap);
 										break;
 									}
 								}
 								
 							}
-							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +resultMap);
-							socket.writeObject(resultMap.values().toArray()[0]);
+							
+							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +outputMap);
+							socket.writeObject(outputMap.values().toArray()[0]);
 							socket.close();
 							DSLogger.logFE(this.getClass().getName(), "run","Exiting");
 						}
@@ -350,13 +358,15 @@ public class FrontEnd implements Runnable{
 								synchronized (lockResult) {
 									if(resultMap.size()>=consistencyLevel){
 										DSLogger.logFE(this.getClass().getName(), "run","Consistency level "+consistencyLevel+" satisfied");
+										outputMap.clear();
+										outputMap.putAll(resultMap);
 										break;
 									}
 								}
 								
 							}
-							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +resultMap);
-							socket.writeObject(resultMap.values().toArray()[0]);
+							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +outputMap);
+							socket.writeObject(outputMap.values().toArray()[0]);
 							socket.close();
 							DSLogger.logFE(this.getClass().getName(), "run","Exiting");
 						}
@@ -434,13 +444,17 @@ public class FrontEnd implements Runnable{
 								synchronized (lockResult) {
 									if(resultMap.size()>=consistencyLevel){
 										DSLogger.logFE(this.getClass().getName(), "run","Consistency level "+consistencyLevel+" satisfied");
+										outputMap.clear();
+										outputMap.putAll(resultMap);
 										break;
 									}
 								}
 								
 							}
-							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +resultMap);
-							socket.writeObject(resultMap.values().toArray()[0]);
+							
+							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +outputMap);
+							socket.writeObject(outputMap.values().toArray()[0]);
+							
 							socket.close();
 							DSLogger.logFE(this.getClass().getName(), "run","Exiting");
 						}
@@ -887,13 +901,15 @@ public class FrontEnd implements Runnable{
 								synchronized (lockResult) {
 									if(resultMap.size()>=consistencyLevel){
 										DSLogger.logFE(this.getClass().getName(), "run","Consistency level "+consistencyLevel+" satisfied");
+										outputMap.clear();
+										outputMap.putAll(resultMap);
 										break;
 									}
 								}
 								
 							}
-							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +resultMap);
-							socket.writeObject(resultMap.values().toArray()[0]);
+							DSLogger.logFE(this.getClass().getName(), "run","Got results from threads " +outputMap);
+							socket.writeObject(outputMap.values().toArray()[0]);
 							socket.close();
 							DSLogger.logFE(this.getClass().getName(), "run","Exiting");
 						}
