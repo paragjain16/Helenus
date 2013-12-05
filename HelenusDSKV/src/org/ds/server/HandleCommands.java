@@ -290,8 +290,8 @@ public class HandleCommands implements Runnable {
 				MapType mapType = MapType.values()[mapNumber]; // map to be
 																// merged
 				DSLogger.logAdmin("HandleCommand", "run", "In replace request");
-				System.out.println("Got replace map command from : "
-						+ socket.getSocket().getRemoteSocketAddress());
+				/*System.out.println("Got replace map command from : "
+						+ socket.getSocket().getRemoteSocketAddress());*/
 				KVStoreOperation operation = new KVStoreOperation(recievedKeys,
 						KVStoreOperation.OperationType.REPLACE, mapType);
 
@@ -321,9 +321,9 @@ public class HandleCommands implements Runnable {
 
 				DSocket sendMerge = new DSocket(newMember.getAddress()
 						.getHostAddress(), newMember.getPort());
-				System.out.println("Sending map of type:" + mapType + "  to :"
+				/*System.out.println("Sending map of type:" + mapType + "  to :"
 						+ sendMerge.getSocket().getRemoteSocketAddress()
-						+ "  with values:" + mapToBeSent);
+						+ "  with values:" + mapToBeSent);*/
 				List<Object> objList = new ArrayList<Object>();
 				if (replace == 0) {
 					objList.add("merge");
@@ -390,16 +390,16 @@ public class HandleCommands implements Runnable {
 				sendMerge.writeObjectList(objList);
 
 				// Consuming the acknowledgment send by merging node
-				System.out
-						.println("Waiting for ack from merging node in send keys crash");
+			/*	System.out
+						.println("Waiting for ack from merging node in send keys crash");*/
 				sendMerge.readObject();
 				sendMerge.close();
-				System.out
+			/*	System.out
 						.println("Received ack from merging node in send keys crash");
 
 				System.out.println("Writing ack in send keys crash to "
 						+ socket.getSocket() + " "
-						+ socket.getSocket().getPort());
+						+ socket.getSocket().getPort());*/
 				socket.writeObject("ack");
 
 			} else if (cmd.equals("combine")) { // For non-sequential crash
@@ -521,10 +521,10 @@ public class HandleCommands implements Runnable {
 					DSLogger.logAdmin("HandleCommand", "run",
 							"In merge request got " + ack);
 				}
-				System.out.println("Writing ack to" + socket.getSocket() + " "
-						+ socket.getSocket().getPort());
+				/*System.out.println("Writing ack to" + socket.getSocket() + " "
+						+ socket.getSocket().getPort());*/
 				socket.writeObject("ack");
-				System.out.println("Writing done");
+				//System.out.println("Writing done");
 
 			} else if (cmd.equals("splitBackup2")) { // required for 3 nodes
 														// ahead of new node

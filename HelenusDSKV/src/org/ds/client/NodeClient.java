@@ -158,8 +158,13 @@ public class NodeClient {
 				// String id = (String) objMap.get(-1);
 				// objMap.remove(-1);
 				// System.out.println("At node id: " + id);
+				if(objMap.size()<100){
 				System.out.println("Local Hashmap of size " + objMap.size()
 						+ " : " + objMap);
+				}
+				else{
+					System.out.println("Local Hashmap of size " + objMap.size());
+				}
 			}
 		} else if (cmd.hasOption("sr")) {
 			// Invoke the update method on NodeClient

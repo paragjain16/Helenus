@@ -395,10 +395,10 @@ public class KeyValueStore implements Runnable {
 			else if (mapNumberForMerge.equals("2")){
 				mapToBeMerged=secondBackupKeyValueStore;
 			}
-			System.out.println("Inside merge_local: FIRST STEP original map of type: "+oper.getMapType()+" has values: "+chosenKeyValueStoreMap);
-			System.out.println("Inside merge_local: SECOND STEP map to be merged of mapnumber: "+mapNumberForMerge+" has values: "+mapToBeMerged);
+			//System.out.println("Inside merge_local: FIRST STEP original map of type: "+oper.getMapType()+" has values: "+chosenKeyValueStoreMap);
+			//System.out.println("Inside merge_local: SECOND STEP map to be merged of mapnumber: "+mapNumberForMerge+" has values: "+mapToBeMerged);
 			chosenKeyValueStoreMap.putAll(mapToBeMerged);
-			System.out.println("Inside merge_local:Third STEP After merge of local maps final map: has values: "+chosenKeyValueStoreMap);
+			//System.out.println("Inside merge_local:Third STEP After merge of local maps final map: has values: "+chosenKeyValueStoreMap);
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
@@ -420,8 +420,8 @@ public class KeyValueStore implements Runnable {
 			
 			Map<String, Object> mapToBeReplaced = oper.getMapToBeMerged();
 			DSLogger.logAdmin("KeyValueStore", "performOperation",
-					"Replacing map:"+ oper.getMapType()+"with the map received from another node:"+mapToBeReplaced);
-			System.out.println("Replacing map:"+ oper.getMapType()+"with the map received from another node:"+mapToBeReplaced);
+					"Replacing map:"+ oper.getMapType()+"with the map received from another node");
+			//System.out.println("Replacing map:"+ oper.getMapType()+"with the map received from another node:"+mapToBeReplaced);
 			chosenKeyValueStoreMap .clear();
 			chosenKeyValueStoreMap.putAll(mapToBeReplaced);
 			try {
