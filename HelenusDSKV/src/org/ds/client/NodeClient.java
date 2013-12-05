@@ -239,12 +239,12 @@ public class NodeClient {
 				fw1.append("Latency Lookup");
 				fw1.append("\n");
 				for (int i = 0; i < 100; i++) {
-					int rndIndex = new Random().nextInt(1000);
-					int rndKey = randomKey[rndIndex];
-					fw1.append("Key"+rndKey );
+					int rnd = new Random().nextInt(1000);
+					//int rndKey = randomKey[rndIndex];
+					fw1.append("Key"+rnd );
 					fw1.append(",");
 					long startTime = System.currentTimeMillis();
-					client.lookup("Key"+rndKey, consistencyLevel);
+					client.lookup("Key"+rnd, consistencyLevel);
 					long endTime = System.currentTimeMillis();
 					fw1.append(endTime - startTime + "");
 					fw1.append("\n");
