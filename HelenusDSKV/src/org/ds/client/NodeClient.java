@@ -219,7 +219,7 @@ public class NodeClient {
 					
 					
 					if(i%10==0){
-						fw.append("Key");
+						fw.append(keyl);
 						fw.append(",");
 						long startTime = System.currentTimeMillis();
 						client.insert(keyl, valuel, consistencyLevel);
