@@ -11,7 +11,7 @@ import org.ds.networkConf.XmlParseUtility;
 
 
 public class ReadNames {
-	private static final String FILENAME = "top250";
+	private static final String FILENAME = "movies";
 	public static void read(String lineNo){
 		try {
 			//String lineNo = "25,71,103,203,241,";
@@ -48,10 +48,12 @@ public class ReadNames {
 			}
 			System.out.println(movies);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+			
+			DSLogger.logFE("ReadNames", "read", e.getMessage());
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		
+			DSLogger.logFE("ReadNames", "read", e.getMessage());
 			e.printStackTrace();
 		}
 		
