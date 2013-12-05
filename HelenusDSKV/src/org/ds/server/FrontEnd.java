@@ -40,6 +40,7 @@ public class FrontEnd implements Runnable{
 	private Object lock;
 	private Member itself;
 	private Map<String, Object> outputMap = new HashMap<String, Object>();
+	private Executor executor;
 	
 	
 	//Shares the alive and dead member list of the contact server
@@ -49,6 +50,7 @@ public class FrontEnd implements Runnable{
 		this.lock = lock;
 		this.itself = itself;
 		outputMap = new HashMap<String, Object>();
+		executor = Executors.newFixedThreadPool(3);
 		try {
 			serverSocket = new ServerSocket(4000);
 		} catch (IOException e) {
@@ -238,7 +240,7 @@ public class FrontEnd implements Runnable{
 							// Contact all replicas to insert the received key but wait for reply from no of machines defined
 							// by consistency level
 							
-							Executor executor = Executors.newFixedThreadPool(3);
+							
 							String address = "";
 							int port = -1;
 							if(aliveMembers.get(primayReplica+"")!=null){
@@ -326,7 +328,7 @@ public class FrontEnd implements Runnable{
 							// Contact all replicas to insert the received key but wait for reply from no of machines defined
 							// by consistency level
 							
-							Executor executor = Executors.newFixedThreadPool(3);
+							//Executor executor = Executors.newFixedThreadPool(3);
 							String address = "";
 							int port = -1;
 							if(aliveMembers.get(primayReplica+"")!=null){
@@ -412,7 +414,7 @@ public class FrontEnd implements Runnable{
 							// Contact all replicas to insert the received key but wait for reply from no of machines defined
 							// by consistency level
 							
-							Executor executor = Executors.newFixedThreadPool(3);
+							//Executor executor = Executors.newFixedThreadPool(3);
 							String address = "";
 							int port = -1;
 							if(aliveMembers.get(primayReplica+"")!=null){
@@ -869,7 +871,7 @@ public class FrontEnd implements Runnable{
 							// Contact all replicas to insert the received key but wait for reply from no of machines defined
 							// by consistency level
 							
-							Executor executor = Executors.newFixedThreadPool(3);
+							//Executor executor = Executors.newFixedThreadPool(3);
 							String address = "";
 							int port = -1;
 							if(aliveMembers.get(primayReplica+"")!=null){
