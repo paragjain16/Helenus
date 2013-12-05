@@ -202,33 +202,59 @@ public class NodeClient {
 			client.quit();
 		} else if (cmd.hasOption("til")) {
 			int[] randomKey = new int[1000];
-			String dummyValue = "";
-			for (int i = 0; i < 1000; i++) {
-				randomKey[i] = new Random().nextInt(1000001);
-				// client.insert(randomKey[i], dummyValue);
-			}
-			File file = new File("/tmp/mp3readingslookup.csv");
+			//String dummyValue = "";
+			
+			File file = new File("/tmp/mp4insert.csv");
 			FileWriter fw = null;
 			try {
 				fw = new FileWriter(file);
-				fw.append("Key");
+				fw.append("Key Insert");
 				fw.append(",");
-				fw.append("Latency ");
+				fw.append("Latency Insert");
 				fw.append("\n");
-
-				for (int i = 0; i < 5; i++) {
+				for (int i = 0; i < 1000; i++) {
+					//randomKey[i] = new Random().nextInt(1000001);
+					String keyl = "Key"+i;
+					String valuel = "Value"+i;
+					
+					
+					if(i%10==0){
+						fw.append("Key");
+						fw.append(",");
+						long startTime = System.currentTimeMillis();
+						client.insert(keyl, valuel, consistencyLevel);
+						long endTime = System.currentTimeMillis();
+						fw.append(endTime - startTime + "");
+						fw.append("\n");
+					}else{
+						client.insert(keyl, valuel, consistencyLevel);
+					}
+				}
+				//fw.append(",");
+				File file1 = new File("/tmp/mp4lookup.csv");
+				FileWriter fw1 = null;
+				fw1 = new FileWriter(file1);
+				fw1.append("Key Lookup");
+				fw1.append(",");
+				fw1.append("Latency Lookup");
+				fw1.append("\n");
+				for (int i = 0; i < 100; i++) {
 					int rndIndex = new Random().nextInt(1000);
 					int rndKey = randomKey[rndIndex];
-					fw.append(rndKey + "");
-					fw.append(",");
+					fw1.append("Key"+rndKey );
+					fw1.append(",");
 					long startTime = System.currentTimeMillis();
-					// client.lookup(rndKey);
+					client.lookup("Key"+rndKey, consistencyLevel);
 					long endTime = System.currentTimeMillis();
-					fw.append(endTime - startTime + "");
-					fw.append("\n");
+					fw1.append(endTime - startTime + "");
+					fw1.append("\n");
 				}
+			
+				
 				fw.flush();
 				fw.close();
+				fw1.flush();
+				fw1.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
