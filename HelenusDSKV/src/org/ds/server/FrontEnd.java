@@ -65,13 +65,13 @@ public class FrontEnd implements Runnable{
 		//accept requests and blocks till it is served
 		while(true){
 				try {
-					DSLogger.logFE("FrontEnd","run","Listening to commands");
 					
+						DSLogger.logFE("FrontEnd","run","Listening to commands");
 						System.out.println("Waiting for command");
 						//DSLogger.logFE("FrontEnd","run","Listening to commands");
 						Socket normalSocket = serverSocket.accept();
 						socket = new DSocket(normalSocket);						
-						System.out.println("Accepted request from "+socket.getSocket().getRemoteSocketAddress());
+						//System.out.println("Accepted request from "+socket.getSocket().getRemoteSocketAddress());
 						DSLogger.logFE("FrontEnd","run","Accepted request from "+socket.getSocket().getRemoteSocketAddress());
 						List<Object> argList = (ArrayList<Object>)socket.readObject();
 						String cmd=(String) argList.get(0);
@@ -489,8 +489,8 @@ public class FrontEnd implements Runnable{
 							if(nextToFailure.get(0)==nextToFailure.get(1)){
 								sequentialFailure = true;
 							}
-							System.out.println(nextToFailure);
-							System.out.println(nextMachineId);
+							//System.out.println(nextToFailure);
+							//System.out.println(nextMachineId);
 							
 							//Two machines failed sequentially
 							int i=0;
@@ -518,7 +518,7 @@ public class FrontEnd implements Runnable{
 									DSLogger.logFE(this.getClass().getName(), "run","Machine "+i+" in Sequential order are : "+nextMachineId);
 								}
 							}
-							System.out.println("Running machines are "+machines);
+							//System.out.println("Running machines are "+machines);
 							//Perform actions to handle crash, there are two cases- 
 							//CASE I Neighboring nodes fails
 							
@@ -541,11 +541,11 @@ public class FrontEnd implements Runnable{
 								Member mem = aliveMembers.get(machines.get(0)+"");
 								DSocket sendMerge = new DSocket(mem.getAddress().getHostAddress(), mem.getPort());
 								sendMerge.writeObjectList(argList);
-								System.out.println("Waiting for ack on "+sendMerge.getSocket()+" "+sendMerge.getSocket().getPort());
+								//System.out.println("Waiting for ack on "+sendMerge.getSocket()+" "+sendMerge.getSocket().getPort());
 								//consume ack
 								Object ack = sendMerge.readObject();
-								System.out.println(ack);
-								System.out.println("Ack recieved");
+								//System.out.println(ack);
+								//System.out.println("Ack recieved");
 								sendMerge.close();	
 								
 								//Step 2

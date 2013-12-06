@@ -1,5 +1,13 @@
 package org.ds.server;
 
+/**
+* @author { pjain11, mallapu2 } @ illinois.edu
+* Used to carry out requests from Front End. 
+* This threads will be created according to contact primary and replicas of a key 
+* and instruct those nodes to carry out the required operation
+* The front end will wait for as many as threads to finish as specified by consistency level
+* */
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
