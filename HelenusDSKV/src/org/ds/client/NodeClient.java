@@ -30,13 +30,14 @@ import org.ds.socket.DSocket;
 public class NodeClient {
 	private String contactMachineIP;
 	private int contactMachinePort;
-
+    private static final int REPLICATION_FACTOR=3;
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		String key = null;
 		String value = null;
+		String consistencyLevelStr=null;
 		Integer consistencyLevel = null;
 		Options options = new Options();
 
@@ -79,7 +80,22 @@ public class NodeClient {
 		}
 
 		if (cmd.hasOption("c")) {
-			consistencyLevel = Integer.parseInt(cmd.getOptionValue("c"));
+			consistencyLevelStr=cmd.getOptionValue("c");
+			if(!consistencyLevelStr.equalsIgnoreCase("one") && !consistencyLevelStr.equalsIgnoreCase("quorum") && !consistencyLevelStr.equalsIgnoreCase("all")){
+				System.out
+				.println("Please specify a consistency level of ONE,QUOROUM or ALL with the request");
+		System.exit(0);
+			}
+			if(consistencyLevelStr.equalsIgnoreCase("one")){
+				consistencyLevel=1;
+			}
+			else if(consistencyLevelStr.equalsIgnoreCase("quorum"))
+			{
+				consistencyLevel=(REPLICATION_FACTOR/2)+1;
+			}
+			else if(consistencyLevelStr.equalsIgnoreCase("all")){
+				consistencyLevel=REPLICATION_FACTOR;
+			}			
 		} else if (!cmd.hasOption("c")) {
 			// Consistency level is mandatory for all commands except show and
 			// showRecent commands
