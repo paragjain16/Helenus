@@ -30,7 +30,7 @@ import org.ds.socket.DSocket;
 public class NodeClient {
 	private String contactMachineIP;
 	private int contactMachinePort;
-    private static final int REPLICATION_FACTOR=3;
+    private static final int REPLICATION_FACTOR=3; 
 	/**
 	 * @param args
 	 */
@@ -84,7 +84,7 @@ public class NodeClient {
 			if(!consistencyLevelStr.equalsIgnoreCase("one") && !consistencyLevelStr.equalsIgnoreCase("quorum") && !consistencyLevelStr.equalsIgnoreCase("all")){
 				System.out
 				.println("Please specify a consistency level of ONE,QUOROUM or ALL with the request");
-		System.exit(0);
+				System.exit(0);
 			}
 			if(consistencyLevelStr.equalsIgnoreCase("one")){
 				consistencyLevel=1;
@@ -113,13 +113,12 @@ public class NodeClient {
 				.split(":")[1]);
 
 		if (cmd.hasOption("l")) {
-			// Invoke the insert method on NodeClient
+			// Invoke the lookup method on NodeClient
 
 			Object objValue = client.lookup(key, consistencyLevel);
 			if (objValue instanceof String
 					&& objValue.toString().equals("!#KEYNOTFOUND#!")) {
-				System.out
-						.println("Entered key not found in the distributed key value store");
+				System.out.println("Entered key not found in the distributed key value store");
 			} else {
 				String valueStr = (String) objValue;
 				if (valueStr.contains(",")) {
@@ -141,27 +140,25 @@ public class NodeClient {
 			Object objValue = client.lookup(key, consistencyLevel);
 			if (objValue instanceof String
 					&& objValue.toString().equals("!#KEYNOTFOUND#!")) {
-				System.out
-						.println("Update is not possible as the entered key is not found in the distributed key value store");
+				System.out.println("Update is not possible as the entered key is not found in the distributed key value store");
 			} else {
 				client.update(key, value, consistencyLevel);
 			}
 		}
 
 		else if (cmd.hasOption("d")) {
-			// Invoke the update method on NodeClient
+			// Invoke the delete method on NodeClient
 			Object objValue = client.lookup(key, consistencyLevel);
 			if (objValue instanceof String
 					&& objValue.toString().equals("!#KEYNOTFOUND#!")) {
-				System.out
-						.println("Delete is not possible as the entered key is not found in the distributed key value store");
+				System.out.println("Delete is not possible as the entered key is not found in the distributed key value store");
 			} else {
 				client.delete(key, consistencyLevel);
 			}
 		}
 
 		else if (cmd.hasOption("s")) {
-			// Invoke the update method on NodeClient
+			// Invoke the show method on NodeClient
 			List<Map> mapList = (List<Map>) client.show(false);
 			int count = 0;
 			for (Map map : mapList) {
