@@ -34,6 +34,7 @@ public class KeyValueStore implements Runnable {
 	private Map<String, Object> firstBackupKeyValueStore = new HashMap<String, Object>();
 	private Map<String, Object> secondBackupKeyValueStore = new HashMap<String, Object>();
 	
+	//Data structure to hold most recent reads and writes performed on this key-value store.
 	private MostRecentOperations<String> tenMostRecentWrittenKeys=new MostRecentOperations<String>();
 	private MostRecentOperations<String> tenMostRecentReadKeys=new MostRecentOperations<String>();
 	
@@ -69,7 +70,7 @@ public class KeyValueStore implements Runnable {
 
 	private void performOperation(KVStoreOperation oper) {
 		// Select a keystore to operate on based on the hash of the key.
-		MapType chosenType = oper.getMapType();
+		MapType chosenType = oper.getMapType(); //Pick one of the 3 keyValue stores maintained at this node based on the operation argument.
 		switch (chosenType) {
 		case PRIMARY:
 			chosenKeyValueStoreMap = primaryKeyValueStoreMap;
@@ -156,9 +157,9 @@ public class KeyValueStore implements Runnable {
 			newMap = new HashMap<String, Object>();
 			Set<String> origKeys = new HashSet<String>(
 					chosenKeyValueStoreMap.keySet());
-			DSLogger.logAdmin("KeyValueStore", "performOperation",
+			/*DSLogger.logAdmin("KeyValueStore", "performOperation",
 					"Original keyset of size:" + origKeys.size() + "  "
-							+ chosenKeyValueStoreMap);
+							+ chosenKeyValueStoreMap);*/
 			// Collections.sort(new ArrayList<Integer>(origKeys));
 			Integer hashedKey = null;
 			for (String key : origKeys) {
@@ -360,6 +361,7 @@ public class KeyValueStore implements Runnable {
 				e.printStackTrace();
 			}
 			break;
+		//Display ten recent reads and writes.	
 		case DISPLAY_RECENT:	try {
 			List<MostRecentOperations<String>> recentOpsList = new ArrayList<MostRecentOperations<String>>();
 			recentOpsList.add(tenMostRecentWrittenKeys);
@@ -427,7 +429,6 @@ public class KeyValueStore implements Runnable {
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			break;
@@ -443,13 +444,12 @@ public class KeyValueStore implements Runnable {
 				e.printStackTrace();
 			}
 			break;
-		case CRASH_RECOVERY:
+		case CRASH_RECOVERY: //Merge primary with Backup1 and Backup2.
 			chosenKeyValueStoreMap.putAll(firstBackupKeyValueStore);
 			chosenKeyValueStoreMap.putAll(secondBackupKeyValueStore);
 			try {
 				resultQueue.put("ack");
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			break;		
