@@ -1,4 +1,9 @@
 package org.ds.client;
+/**
+ * @author pjain11,mallapu2 
+ * This class is used to read movie names from the file on disk
+ * the output from the key value store are the lines numbers of movie names in the file 
+ */
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
