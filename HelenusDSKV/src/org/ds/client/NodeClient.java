@@ -191,9 +191,9 @@ public class NodeClient {
 				if (mostRecentWrites.size() > 0) {
 					for (int i = mostRecentWrites.size() - 1; i >= 0; i--) {
 						String combinedValue = mostRecentWrites.get(i);
-						System.out.println("Key: "
-								+ combinedValue.split(":")[0] + "  Value:"
-								+ combinedValue.split(":")[1]);
+						System.out.println("Operation: "+combinedValue.split(":")[0]+"  Key: "
+								+ combinedValue.split(":")[1] + "  Value:"
+								+ combinedValue.split(":")[2]);
 					}
 				}
 			}
@@ -204,9 +204,9 @@ public class NodeClient {
 				if (mostRecentReads.size() > 0) {
 					for (int i = mostRecentReads.size() - 1; i >= 0; i--) {
 						String combinedValue = mostRecentReads.get(i);
-						System.out.println("Key: "
-								+ combinedValue.split(":")[0] + "  Value:"
-								+ combinedValue.split(":")[1]);
+						System.out.println("Operation: "+combinedValue.split(":")[0]+"  Key: "
+								+ combinedValue.split(":")[1] + "  Value:"
+								+ combinedValue.split(":")[2]);
 					}
 				}
 			}

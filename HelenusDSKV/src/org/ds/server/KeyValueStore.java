@@ -100,7 +100,7 @@ public class KeyValueStore implements Runnable {
 					retValue = "!#KEYNOTFOUND#!";
 				}
 				if(!retValue.equals("!#KEYNOTFOUND#!")){
-					tenMostRecentReadKeys.add(oper.getKey()+":"+retValue);
+					tenMostRecentReadKeys.add(oper.getOperType()+":"+oper.getKey()+":"+retValue);
 				}
 				resultQueue.put(retValue);
 			} catch (InterruptedException e1) {
@@ -114,7 +114,7 @@ public class KeyValueStore implements Runnable {
 					"putting key:" + oper.getKey() + "and value:"
 							+ oper.getValue());
 			chosenKeyValueStoreMap.put(oper.getKey(), oper.getValue());
-			tenMostRecentWrittenKeys.add(oper.getKey()+":"+oper.getValue());
+			tenMostRecentWrittenKeys.add(oper.getOperType()+":"+ oper.getKey()+":"+oper.getValue());
 			break;
 
 		case UPDATE:
@@ -122,7 +122,7 @@ public class KeyValueStore implements Runnable {
 					"updating for  key:" + oper.getKey() + "and new value:"
 							+ oper.getValue());
 			chosenKeyValueStoreMap.put(oper.getKey(), oper.getValue());
-			tenMostRecentWrittenKeys.add(oper.getKey()+":"+oper.getValue());
+			tenMostRecentWrittenKeys.add(oper.getOperType()+":"+oper.getKey()+":"+oper.getValue());
 			break;
 
 		case DELETE:
