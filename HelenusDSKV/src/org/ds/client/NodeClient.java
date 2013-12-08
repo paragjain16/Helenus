@@ -121,7 +121,7 @@ public class NodeClient {
 				System.out.println("Entered key not found in the distributed key value store");
 			} else {
 				String valueStr = (String) objValue;
-				if (valueStr.contains(",")) {
+				if (valueStr.contains(",") && valueStr.matches("^[0-9].*")) {
 					DSLogger.logFE("ReadNames", "read", "Retreiving titles present in line nos:"+valueStr);
 					ReadNames.read(valueStr);
 				} else {

@@ -14,6 +14,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import org.ds.logger.DSLogger;
 import org.ds.socket.DSocket;
@@ -55,10 +56,10 @@ public class AsynchFEExecutor implements Runnable{
 				DSLogger.logFE(this.getClass().getName(), "run","value put in resultMap of size  "+resultMap.size());
 			}
 		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
+			resultMap.put(new Random().nextInt(1000)+"", "Consistency cannot be satisfied at this moment Please retry");
 			e1.printStackTrace();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
+			resultMap.put(new Random().nextInt(1000)+"", "Consistency cannot be satisfied at this moment Please retry");
 			e1.printStackTrace();
 		}
 		
